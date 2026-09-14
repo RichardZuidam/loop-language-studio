@@ -1,0 +1,10 @@
+{
+  "name": "LOOP Language Studio",
+  "short_name": "LOOP",
+  "description": "Je persoonlijke plek om talen te leren.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f1efe7",
+  "theme_color": "#171714",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
