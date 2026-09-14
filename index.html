@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#171714" />
+  <meta name="description" content="Persoonlijke language learning studio voor woorden, zinnen en uitspraak." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>LOOP — Language Studio</title>
+</head>
+<body>
+  <div class="ticker" aria-hidden="true"><div>LEARN DAILY · BUILD YOUR LANGUAGE · LEARN DAILY · BUILD YOUR LANGUAGE · LEARN DAILY · BUILD YOUR LANGUAGE ·</div></div>
+  <header class="topbar">
+    <button class="brand" data-route="home" aria-label="Naar home"><span>LOOP</span><small>Language studio</small></button>
+    <nav aria-label="Hoofdnavigatie">
+      <button data-route="home" class="nav-link active">Home</button>
+      <button data-route="library" class="nav-link">Lijsten</button>
+    </nav>
+    <div class="score-pill" aria-label="Totaal aantal punten"><span>●</span> <strong id="total-score">0</strong> XP</div>
+  </header>
+
+  <main id="app" tabindex="-1">
+    <section id="home-view" class="view active">
+      <div class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">YOUR PERSONAL LANGUAGE SYSTEM / 01</p>
+          <h1>WORDS<br><em>THAT STICK.</em></h1>
+          <p class="intro">Maak je eigen woordenlijsten. Oefen slim. Bouw elke dag aan een taal die van jou wordt.</p>
+          <button class="btn btn-accent" id="hero-create">Nieuwe lijst <span>↗</span></button>
+        </div>
+        <aside class="hero-card">
+          <div class="motif"><span>L</span><span>O</span><span>O</span><span>P</span></div>
+          <div class="hero-stat"><span>Vandaag</span><strong id="today-xp">0 XP</strong></div>
+          <div class="hero-stat"><span>Beste reeks</span><strong id="best-streak">0</strong></div>
+        </aside>
+      </div>
+
+      <section class="section-block">
+        <div class="section-heading"><div><p class="eyebrow">CONTINUE LEARNING</p><h2>Jouw lijsten</h2></div><button class="text-button" id="home-see-all">Bekijk alles →</button></div>
+        <div id="recent-lists" class="list-grid"></div>
+      </section>
+
+      <section class="roadmap">
+        <p class="eyebrow">THE ROAD AHEAD</p>
+        <h2>Dit is pas<br>het begin.</h2>
+        <div class="roadmap-grid">
+          <article class="roadmap-item live"><span>01</span><h3>Woorden</h3><p>Lijsten, flashcards en overhoringen.</p><b>LIVE</b></article>
+          <article class="roadmap-item"><span>02</span><h3>Zinnen</h3><p>Zinsbouw en context leren begrijpen.</p><b>NEXT</b></article>
+          <article class="roadmap-item"><span>03</span><h3>Spraak</h3><p>Luisteren, inspreken en uitspraak trainen.</p><b>SOON</b></article>
+        </div>
+      </section>
+    </section>
+
+    <section id="library-view" class="view">
+      <div class="page-head"><div><p class="eyebrow">YOUR COLLECTION</p><h1>WOORDEN<br><em>LIJSTEN.</em></h1></div><button class="btn btn-accent" id="library-create">+ Nieuwe lijst</button></div>
+      <div class="toolbar"><label class="search"><span>⌕</span><input id="list-search" type="search" placeholder="Zoek een lijst" /></label><span id="list-count">0 lijsten</span></div>
+      <div id="all-lists" class="list-grid"></div>
+    </section>
+
+    <section id="editor-view" class="view narrow">
+      <button class="back-button" data-route="library">← Terug naar lijsten</button>
+      <p class="eyebrow">CREATE / EDIT</p><h1 id="editor-heading">NIEUWE LIJST.</h1>
+      <form id="list-form">
+        <label>Naam van de lijst<input id="list-title" required maxlength="60" placeholder="Bijv. Vietnamees — Les 1" /></label>
+        <div class="field-row"><label>Van<input id="language-from" maxlength="30" placeholder="Vietnamees" /></label><button type="button" class="swap" id="swap-languages" aria-label="Talen omwisselen">⇄</button><label>Naar<input id="language-to" maxlength="30" placeholder="Nederlands" /></label></div>
+        <label>Woorden <span class="label-note">één paar per regel</span><textarea id="word-pairs" required rows="11" placeholder="xin chào = hallo\ncảm ơn = bedankt\ntạm biệt = tot ziens"></textarea></label>
+        <p class="input-hint">Gebruik <strong>=</strong>, een tab of een puntkomma tussen het woord en de vertaling.</p>
+        <div class="form-actions"><button type="button" class="btn btn-ghost" data-route="library">Annuleren</button><button type="submit" class="btn btn-dark">Lijst opslaan <span>→</span></button></div>
+      </form>
+    </section>
+
+    <section id="detail-view" class="view">
+      <button class="back-button" data-route="library">← Alle lijsten</button>
+      <div class="detail-head"><div><p class="eyebrow" id="detail-languages">TAAL → TAAL</p><h1 id="detail-title">LIJST</h1><p id="detail-meta"></p></div><div class="detail-actions"><button class="icon-btn" id="edit-list">Bewerk</button><button class="icon-btn danger" id="delete-list">Verwijder</button></div></div>
+      <div class="practice-options">
+        <button class="practice-card" data-mode="type"><span class="practice-icon">Aa</span><div><b>Overhoren</b><small>Typ zelf de vertaling</small></div><i>→</i></button>
+        <button class="practice-card" data-mode="cards"><span class="practice-icon">↻</span><div><b>Flashcards</b><small>Draai om en beoordeel jezelf</small></div><i>→</i></button>
+      </div>
+      <div class="word-table-head"><h2>Alle woorden</h2><span id="word-count"></span></div>
+      <div id="word-table" class="word-table"></div>
+    </section>
+
+    <section id="quiz-view" class="view quiz-shell">
+      <div class="quiz-top"><button class="quiz-close" id="quiz-close">×</button><div class="progress-track"><span id="quiz-progress"></span></div><div class="quiz-score"><span>●</span> <b id="quiz-score">0</b></div></div>
+      <div id="quiz-stage" class="quiz-stage"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
+
