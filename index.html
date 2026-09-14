@@ -11,6 +11,7 @@
   <title>LOOP — Language Studio</title>
 </head>
 <body>
+  <section id="auth-gate" class="auth-gate"><div class="auth-panel"><p class="eyebrow">LOOP / PERSONAL STUDIO</p><h1>JOUW TAAL.<br><em>JOUW ACCOUNT.</em></h1><p>Log in om je lijsten, zinnen en voortgang op ieder apparaat te bewaren.</p><div class="auth-tabs"><button class="active" data-auth-tab="login">Inloggen</button><button data-auth-tab="signup">Account maken</button></div><form id="auth-form"><label>E-mailadres<input id="auth-email" type="email" autocomplete="email" required></label><label>Wachtwoord<input id="auth-password" type="password" autocomplete="current-password" minlength="8" required></label><button class="btn btn-accent" id="auth-submit">Inloggen →</button></form><button id="forgot-password" class="text-button">Wachtwoord vergeten?</button><p id="auth-message" class="auth-message" role="status"></p></div></section>
   <div class="ticker" aria-hidden="true"><div>LEARN DAILY · BUILD YOUR LANGUAGE · LEARN DAILY · BUILD YOUR LANGUAGE · LEARN DAILY · BUILD YOUR LANGUAGE ·</div></div>
   <header class="topbar">
     <button class="brand" data-route="home" aria-label="Naar home"><span>LOOP</span><small>Language studio</small></button>
@@ -19,7 +20,7 @@
       <button data-route="library" class="nav-link">Lijsten</button>
       <button data-route="sentences" class="nav-link">Zinnen</button>
     </nav>
-    <div class="top-actions"><button id="theme-toggle" class="theme-toggle" aria-label="Donker thema">◐</button><div class="score-pill" aria-label="Totaal aantal punten"><span>●</span> <strong id="total-score">0</strong> XP</div></div>
+    <div class="top-actions"><button id="account-button" class="theme-toggle" aria-label="Account en uitloggen">●</button><button id="theme-toggle" class="theme-toggle" aria-label="Donker thema">◐</button><div class="score-pill" aria-label="Totaal aantal punten"><span>●</span> <strong id="total-score">0</strong> XP</div></div>
   </header>
 
   <main id="app" tabindex="-1">
@@ -121,6 +122,8 @@
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <script src="frequency-data.js"></script>
   <script src="sentence-data.js"></script>
   <script src="app.js"></script>
