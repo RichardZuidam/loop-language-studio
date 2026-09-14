@@ -1,4 +1,9 @@
 const STORAGE_KEY = 'loop-language-studio-v1';
+const frequencyLists = (window.VI_FREQUENCY_LISTS || []).map((list, index) => ({
+  id: `vi-frequency-${index + 1}`, title: list.title, from: 'Vietnamees', to: 'Nederlands',
+  createdAt: Date.now() - index, lastScore: null,
+  words: list.words.map(([front, back]) => ({ front, back })), source: list.source
+}));
 const seed = {
   score: 0, bestStreak: 0, todayXp: 0,
   lists: [{
@@ -8,12 +13,19 @@ const seed = {
       { front: 'tạm biệt', back: 'tot ziens' }, { front: 'vâng', back: 'ja' },
       { front: 'không', back: 'nee' }, { front: 'bạn khỏe không?', back: 'hoe gaat het met je?' }
     ]
-  }]
+  }, ...frequencyLists]
 };
 let data = loadData();
 let activeListId = null, editingId = null, quiz = null;
 
-function loadData(){ try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || structuredClone(seed); } catch { return structuredClone(seed); } }
+function loadData(){
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(!stored) return structuredClone(seed);
+    frequencyLists.forEach(list => { if(!stored.lists.some(item => item.id === list.id)) stored.lists.push(structuredClone(list)); });
+    return stored;
+  } catch { return structuredClone(seed); }
+}
 function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateStats(); }
 function esc(value=''){ return value.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
 function normalize(value){ return value.trim().toLocaleLowerCase('nl').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[.!?]/g,''); }
@@ -121,3 +133,4 @@ document.querySelector('#list-form').addEventListener('submit',event=>{
 });
 updateStats(); renderHome();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
+
