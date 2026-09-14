@@ -80,7 +80,7 @@ function cardHTML(list,index){
 function bindCards(root){ root.querySelectorAll('[data-list-id]').forEach(card=>card.addEventListener('click',()=>openList(card.dataset.listId))); }
 function emptyHTML(){ return `<div class="empty"><h3>Nog geen lijsten</h3><p>Maak je eerste woordenlijst en begin met leren.</p><button class="btn btn-accent" data-empty-create>Nieuwe lijst</button></div>`; }
 function renderHome(){
-  const root=document.querySelector('#recent-lists'), lists=data.lists.slice(0,3);
+  const root=document.querySelector('#recent-lists'), lists=data.lists.slice(0,6);
   root.innerHTML=lists.length?lists.map(cardHTML).join(''):emptyHTML(); bindCards(root);
   root.querySelector('[data-empty-create]')?.addEventListener('click',newList);
   updateStats();
