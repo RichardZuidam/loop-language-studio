@@ -162,15 +162,34 @@ function renderQuiz(){
   if(quiz.index>=quiz.items.length){ finishQuiz(); return; }
   if(quiz.kind==='sentence'){renderSentenceQuestion();return;}
   const word=quiz.items[quiz.index];
-  if(quiz.mode==='type'){
+  const activeMode=quiz.mode==='mixed'?['type','choice','cards'][quiz.index%3]:quiz.mode;
+  quiz.activeMode=activeMode;
+  if(activeMode==='type'){
     stage.innerHTML=`<div class="quiz-card"><p class="quiz-kicker">${esc(quiz.list.from)} → ${esc(quiz.list.to)} · ${quiz.index+1}/${quiz.items.length}</p><h2 class="quiz-word">${esc(word.front)}</h2><form id="answer-form"><div class="answer-wrap"><input id="answer" autocomplete="off" autocapitalize="none" placeholder="Typ de vertaling…" aria-label="Jouw antwoord"><button aria-label="Controleer">→</button></div><div id="answer-feedback" class="answer-feedback"></div></form></div>`;
     const form=document.querySelector('#answer-form'); form.addEventListener('submit',checkAnswer); document.querySelector('#answer').focus();
+  }else if(activeMode==='choice'){
+    const distractors=shuffle(quiz.list.words.filter(item=>item!==word)).slice(0,3).map(item=>item.back),choices=shuffle([word.back,...distractors]);
+    stage.innerHTML=`<div class="quiz-card"><p class="quiz-kicker">MEERKEUZE · ${quiz.index+1}/${quiz.items.length}</p><h2 class="quiz-word">${esc(word.front)}</h2><div class="choice-grid">${choices.map(choice=>`<button data-choice="${esc(choice)}">${esc(choice)}</button>`).join('')}</div><div id="answer-feedback" class="answer-feedback"></div></div>`;
+    document.querySelectorAll('[data-choice]').forEach(button=>button.addEventListener('click',()=>checkChoice(button.dataset.choice)));
   }else{
     stage.innerHTML=`<div><div id="flashcard" class="flashcard" role="button" tabindex="0" aria-label="Draai flashcard om"><div class="flash-inner"><div class="flash-face"><small>${esc(quiz.list.from)} · tik om te draaien</small><strong>${esc(word.front)}</strong></div><div class="flash-face back"><small>${esc(quiz.list.to)}</small><strong>${esc(word.back)}</strong></div></div></div><div class="card-controls"><button data-rate="0">Nog leren</button><button data-rate="1">Ik wist het</button></div></div>`;
     const card=document.querySelector('#flashcard'); const flip=()=>card.classList.toggle('flipped'); card.addEventListener('click',flip); card.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')flip()});
     document.querySelectorAll('[data-rate]').forEach(b=>b.addEventListener('click',()=>rateCard(Number(b.dataset.rate))));
   }
 }
+function checkChoice(answer){
+  if(quiz.answered)return;const word=quiz.items[quiz.index],correct=answersMatch(answer,word.back),feedback=document.querySelector('#answer-feedback');quiz.answered=true;
+  document.querySelectorAll('[data-choice]').forEach(button=>{button.disabled=true;if(answersMatch(button.dataset.choice,word.back))button.classList.add('is-correct');});
+  if(correct){quiz.correct++;quiz.streak++;quiz.points+=8;feedback.className='answer-feedback correct';feedback.innerHTML='✓ Goed! +8 XP <button class="feedback-next" id="choice-next">Volgende →</button>';}
+  else{quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`Niet helemaal — <strong>${esc(word.back)}</strong><div class="feedback-actions"><button id="accept-word">Toch goed rekenen</button><button id="choice-next">Volgende →</button></div>`;document.querySelector('#accept-word').addEventListener('click',acceptCurrentWord);}
+  document.querySelector('#choice-next').addEventListener('click',nextQuestion);document.querySelector('#quiz-score').textContent=quiz.points;
+}
+function acceptCurrentWord(){if(!quiz.answered)return;quiz.correct++;quiz.points+=6;nextQuestion();}
+function speakCurrent(){
+  if(!('speechSynthesis' in window)||!quiz)return;const text=quiz.kind==='sentence'?quiz.items[quiz.index]?.vi:quiz.items[quiz.index]?.front;if(!text)return;
+  speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang='vi-VN';utterance.rate=.82;speechSynthesis.speak(utterance);
+}
+function skipCurrent(){if(!quiz||quiz.index>=quiz.items.length)return;quiz.streak=0;nextQuestion();}
 function renderSentenceQuestion(){
   const stage=document.querySelector('#quiz-stage'), sentence=quiz.items[quiz.index];
   if(quiz.mode==='translate'){
@@ -206,7 +225,7 @@ function checkAnswer(event){
   const input=document.querySelector('#answer'), feedback=document.querySelector('#answer-feedback'); const word=quiz.items[quiz.index]; const exact=normalize(input.value)===normalize(word.back); const correct=answersMatch(input.value,word.back);
   quiz.answered=true; input.disabled=true;
   if(correct){ quiz.correct++; quiz.streak++; const gained=10+Math.min(quiz.streak-1,5)*2; quiz.points+=gained; feedback.className='answer-feedback correct'; feedback.innerHTML=exact?`✓ Goed! +${gained} XP`:`✓ Goed — vergelijkbaar antwoord! +${gained} XP`; }
-  else { quiz.streak=0; feedback.className='answer-feedback wrong'; feedback.innerHTML=`Niet helemaal — het antwoord is <strong>${esc(word.back)}</strong>`; }
+  else { quiz.streak=0; feedback.className='answer-feedback wrong'; feedback.innerHTML=`Niet helemaal — het antwoord is <strong>${esc(word.back)}</strong><div class="feedback-actions"><button type="button" id="accept-word">Toch goed rekenen</button></div>`; document.querySelector('#accept-word').addEventListener('click',acceptCurrentWord); }
   const button=event.submitter; button.textContent='→'; button.setAttribute('aria-label','Volgende vraag'); button.focus(); document.querySelector('#quiz-score').textContent=quiz.points;
 }
 function nextQuestion(){ quiz.index++; quiz.answered=false; renderQuiz(); }
@@ -229,6 +248,7 @@ document.querySelectorAll('[data-route]').forEach(b=>b.addEventListener('click',
 document.querySelector('#hero-create').addEventListener('click',newList); document.querySelector('#library-create').addEventListener('click',newList); document.querySelector('#home-see-all').addEventListener('click',()=>route('library'));
 document.querySelector('#list-search').addEventListener('input',renderLibrary); document.querySelector('#edit-list').addEventListener('click',editList); document.querySelector('#delete-list').addEventListener('click',deleteList);
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startQuiz(b.dataset.mode))); document.querySelector('#quiz-close').addEventListener('click',()=>quiz?.kind==='sentence'?openSentencePack(quiz.pack.id):openList(quiz.list.id));
+document.querySelector('#quiz-speak').addEventListener('click',speakCurrent);document.querySelector('#quiz-skip').addEventListener('click',skipCurrent);
 document.querySelector('#sentence-create').addEventListener('click',newSentencePack);document.querySelector('#edit-sentence-pack').addEventListener('click',editSentencePack);document.querySelector('#delete-sentence-pack').addEventListener('click',deleteSentencePack);
 document.querySelectorAll('[data-sentence-mode]').forEach(button=>button.addEventListener('click',()=>startSentenceQuiz(button.dataset.sentenceMode)));
 document.querySelector('#swap-languages').addEventListener('click',()=>{const a=document.querySelector('#language-from'),b=document.querySelector('#language-to');[a.value,b.value]=[b.value,a.value];});
@@ -243,6 +263,17 @@ document.querySelector('#sentence-form').addEventListener('submit',event=>{
   const title=document.querySelector('#sentence-title').value.trim();
   if(editingSentencePackId){const pack=sentencePackById(editingSentencePackId);pack.title=title;pack.sentences=sentences;activeSentencePackId=pack.id;}else{activeSentencePackId=`sent-${Date.now()}`;data.sentencePacks.unshift({id:activeSentencePackId,title,description:'Jouw eigen zinnenlijst.',lastScore:null,sentences});}
   saveData();openSentencePack(activeSentencePackId);showToast('Zinnen opgeslagen');
+});
+const savedTheme=localStorage.getItem('loop-theme');if(savedTheme==='dark')document.body.classList.add('dark-theme');
+document.querySelector('#theme-toggle').addEventListener('click',()=>{document.body.classList.toggle('dark-theme');localStorage.setItem('loop-theme',document.body.classList.contains('dark-theme')?'dark':'light');});
+document.querySelector('#photo-import').addEventListener('click',()=>document.querySelector('#photo-input').click());
+document.querySelector('#photo-input').addEventListener('change',async event=>{
+  const file=event.target.files?.[0],status=document.querySelector('#photo-status');if(!file)return;
+  if(!('TextDetector' in window)){status.textContent='Automatische tekstherkenning wordt op deze browser nog niet ondersteund. Typ of plak de lijst hieronder.';return;}
+  try{
+    status.textContent='Tekst op de foto herkennen…';const bitmap=await createImageBitmap(file),lines=await new TextDetector().detect(bitmap),text=lines.map(line=>line.rawValue).join('\n');
+    document.querySelector('#word-pairs').value+=(document.querySelector('#word-pairs').value?'\n':'')+text;status.textContent='Tekst toegevoegd. Zet tussen ieder woordpaar nog een = en controleer de accenten.';
+  }catch{status.textContent='Deze foto kon niet worden gelezen. Probeer een scherpere foto of typ de woorden handmatig.';}
 });
 updateStats(); renderHome();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
