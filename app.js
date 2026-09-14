@@ -17,8 +17,12 @@ const seed = {
       { front: 'tạm biệt', back: 'tot ziens' }, { front: 'vâng', back: 'ja' },
       { front: 'không', back: 'nee' }, { front: 'bạn khỏe không?', back: 'hoe gaat het met je?' }
     ]
-  }, ...frequencyLists]
+  }]
 };
+const hadLegacyData = Boolean(localStorage.getItem(STORAGE_KEY));
+function freshAccountData(){
+  return {score:0,bestStreak:0,todayXp:0,sentencePacks:[],lists:[structuredClone(seed.lists[0])]};
+}
 let data = loadData();
 let activeListId = null, editingId = null, quiz = null, activeSentencePackId = null, editingSentencePackId = null, cloudUser = null, cloudSaveTimer = null;
 
@@ -28,7 +32,6 @@ function loadData(){
     if(!stored) return structuredClone(seed);
     if(!Array.isArray(stored.sentencePacks)) stored.sentencePacks=structuredClone(starterSentencePacks);
     starterSentencePacks.forEach(pack=>{if(!stored.sentencePacks.some(item=>item.id===pack.id))stored.sentencePacks.push(structuredClone(pack));});
-    frequencyLists.forEach(list => { if(!stored.lists.some(item => item.id === list.id)) stored.lists.push(structuredClone(list)); });
     return stored;
   } catch { return structuredClone(seed); }
 }
@@ -278,11 +281,22 @@ document.querySelector('#photo-input').addEventListener('change',async event=>{
 const authGate=document.querySelector('#auth-gate'),authMessage=document.querySelector('#auth-message'),authSubmit=document.querySelector('#auth-submit');let authMode='login';
 const supabaseClient=window.supabase?.createClient(window.LOOP_SUPABASE.url,window.LOOP_SUPABASE.key);
 function scheduleCloudSave(){if(!cloudUser||!supabaseClient)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(async()=>{const {error}=await supabaseClient.from('user_state').upsert({user_id:cloudUser.id,data,updated_at:new Date().toISOString()});if(error)showToast('Online opslaan lukt nog niet');},500);}
-async function activateAccount(user){cloudUser=user;authGate.classList.add('hidden');document.querySelector('#account-button').title=user.email||'Account';const {data:row,error}=await supabaseClient.from('user_state').select('data').eq('user_id',user.id).maybeSingle();if(row?.data){data=row.data;localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();renderLibrary();updateStats();}else if(!error)scheduleCloudSave();else showToast('Account actief; database moet nog worden ingesteld');}
+async function activateAccount(user){
+  cloudUser=user;authGate.classList.add('hidden');document.querySelector('#account-button').title=user.email||'Account';
+  const {data:row,error}=await supabaseClient.from('user_state').select('data').eq('user_id',user.id).maybeSingle();
+  if(row?.data){data=row.data;}
+  else if(!error){
+    const mayImport=hadLegacyData&&!localStorage.getItem('loop-owner-migrated');
+    data=mayImport?data:freshAccountData();
+    if(mayImport)localStorage.setItem('loop-owner-migrated',user.id);
+    scheduleCloudSave();
+  }else showToast('Account actief; database moet nog worden ingesteld');
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();renderLibrary();updateStats();
+}
 document.querySelectorAll('[data-auth-tab]').forEach(button=>button.addEventListener('click',()=>{authMode=button.dataset.authTab;document.querySelectorAll('[data-auth-tab]').forEach(item=>item.classList.toggle('active',item===button));authSubmit.textContent=authMode==='login'?'Inloggen →':'Account maken →';authMessage.textContent='';}));
 document.querySelector('#auth-form').addEventListener('submit',async event=>{event.preventDefault();const email=document.querySelector('#auth-email').value.trim(),password=document.querySelector('#auth-password').value;authSubmit.disabled=true;authMessage.textContent='Even geduld…';const result=authMode==='signup'?await supabaseClient.auth.signUp({email,password}):await supabaseClient.auth.signInWithPassword({email,password});authSubmit.disabled=false;if(result.error){authMessage.textContent=result.error.message;return;}if(result.data.session)await activateAccount(result.data.user);else authMessage.textContent='Controleer je e-mail en bevestig je account.';});
 document.querySelector('#forgot-password').addEventListener('click',async()=>{const email=document.querySelector('#auth-email').value.trim();if(!email){authMessage.textContent='Vul eerst je e-mailadres in.';return;}const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.href});authMessage.textContent=error?error.message:'Herstellink verstuurd naar je e-mail.';});
-document.querySelector('#account-button').addEventListener('click',async()=>{if(cloudUser&&confirm(`Uitloggen als ${cloudUser.email}?`)){await supabaseClient.auth.signOut();cloudUser=null;authGate.classList.remove('hidden');}});
+document.querySelector('#account-button').addEventListener('click',async()=>{if(cloudUser&&confirm(`Uitloggen als ${cloudUser.email}?`)){await supabaseClient.auth.signOut();cloudUser=null;data=freshAccountData();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();authGate.classList.remove('hidden');}});
 if(supabaseClient)supabaseClient.auth.getSession().then(({data:{session}})=>session?activateAccount(session.user):authGate.classList.remove('hidden'));else authMessage.textContent='De accountverbinding kon niet worden geladen.';
 updateStats(); renderHome();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
