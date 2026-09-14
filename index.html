@@ -17,6 +17,7 @@
     <nav aria-label="Hoofdnavigatie">
       <button data-route="home" class="nav-link active">Home</button>
       <button data-route="library" class="nav-link">Lijsten</button>
+      <button data-route="sentences" class="nav-link">Zinnen</button>
     </nav>
     <div class="score-pill" aria-label="Totaal aantal punten"><span>●</span> <strong id="total-score">0</strong> XP</div>
   </header>
@@ -47,7 +48,7 @@
         <h2>Dit is pas<br>het begin.</h2>
         <div class="roadmap-grid">
           <article class="roadmap-item live"><span>01</span><h3>Woorden</h3><p>Lijsten, flashcards en overhoringen.</p><b>LIVE</b></article>
-          <article class="roadmap-item"><span>02</span><h3>Zinnen</h3><p>Zinsbouw en context leren begrijpen.</p><b>NEXT</b></article>
+          <article class="roadmap-item live"><span>02</span><h3>Zinnen</h3><p>Zinsbouw en context leren begrijpen.</p><b>LIVE</b></article>
           <article class="roadmap-item"><span>03</span><h3>Spraak</h3><p>Luisteren, inspreken en uitspraak trainen.</p><b>SOON</b></article>
         </div>
       </section>
@@ -57,6 +58,34 @@
       <div class="page-head"><div><p class="eyebrow">YOUR COLLECTION</p><h1>WOORDEN<br><em>LIJSTEN.</em></h1></div><button class="btn btn-accent" id="library-create">+ Nieuwe lijst</button></div>
       <div class="toolbar"><label class="search"><span>⌕</span><input id="list-search" type="search" placeholder="Zoek een lijst" /></label><span id="list-count">0 lijsten</span></div>
       <div id="all-lists" class="list-grid"></div>
+    </section>
+
+    <section id="sentences-view" class="view">
+      <div class="page-head"><div><p class="eyebrow">SENTENCE STUDIO / 02</p><h1>ZINNEN<br><em>IN CONTEXT.</em></h1></div><button class="btn btn-accent" id="sentence-create">+ Nieuwe zinnen</button></div>
+      <div class="toolbar"><span>Leer betekenis én woordvolgorde</span><span id="sentence-pack-count"></span></div>
+      <div id="sentence-packs" class="sentence-grid"></div>
+    </section>
+
+    <section id="sentence-editor-view" class="view narrow">
+      <button class="back-button" data-route="sentences">← Terug naar zinnen</button>
+      <p class="eyebrow">CREATE / EDIT</p><h1 id="sentence-editor-heading">NIEUWE ZINNEN.</h1>
+      <form id="sentence-form">
+        <label>Naam van het thema<input id="sentence-title" required maxlength="60" placeholder="Bijv. In het restaurant" /></label>
+        <label>Zinnen <span class="label-note">één paar per regel</span><textarea id="sentence-pairs" required rows="12" placeholder="Tôi muốn gọi món. = Ik wil graag bestellen.&#10;Món này rất ngon. = Dit gerecht is erg lekker."></textarea></label>
+        <p class="input-hint">Gebruik <strong>=</strong> tussen de Vietnamese zin en de Nederlandse betekenis.</p>
+        <div class="form-actions"><button type="button" class="btn btn-ghost" data-route="sentences">Annuleren</button><button type="submit" class="btn btn-dark">Opslaan <span>→</span></button></div>
+      </form>
+    </section>
+
+    <section id="sentence-detail-view" class="view">
+      <button class="back-button" data-route="sentences">← Alle thema's</button>
+      <div class="detail-head"><div><p class="eyebrow">VIETNAMEES → NEDERLANDS</p><h1 id="sentence-detail-title">THEMA</h1><p id="sentence-detail-meta"></p></div><div class="detail-actions"><button class="icon-btn" id="edit-sentence-pack">Bewerk</button><button class="icon-btn danger" id="delete-sentence-pack">Verwijder</button></div></div>
+      <div class="practice-options">
+        <button class="practice-card" data-sentence-mode="build"><span class="practice-icon">▦</span><div><b>Zin bouwen</b><small>Tik woorden in de juiste volgorde</small></div><i>→</i></button>
+        <button class="practice-card" data-sentence-mode="translate"><span class="practice-icon">Aa</span><div><b>Zelf vertalen</b><small>Typ de Vietnamese zin</small></div><i>→</i></button>
+      </div>
+      <div class="word-table-head"><h2>Alle zinnen</h2><span id="sentence-count"></span></div>
+      <div id="sentence-table" class="sentence-table"></div>
     </section>
 
     <section id="editor-view" class="view narrow">
@@ -90,6 +119,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="frequency-data.js"></script>
+  <script src="sentence-data.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
