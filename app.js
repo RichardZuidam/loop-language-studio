@@ -28,7 +28,35 @@ function loadData(){
 }
 function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateStats(); }
 function esc(value=''){ return value.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
-function normalize(value){ return value.trim().toLocaleLowerCase('nl').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[.!?]/g,''); }
+function normalize(value){ return value.trim().toLocaleLowerCase('nl').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim(); }
+const equivalentAnswers = [
+  ['bedankt','dankjewel','dank je wel','dank je','thanks'], ['hallo','hoi','goedendag'],
+  ['tot ziens','doei','dag'], ['ja','jazeker','zeker'], ['nee','neen'],
+  ['jij','je'], ['jou','je'], ['jouw','je'], ['wij','we'], ['zij','ze'],
+  ['niet','geen'], ['ook','eveneens'], ['maar','echter'], ['mooi','prachtig'],
+  ['groot','enorm'], ['klein','miniem'], ['snel','vlug'], ['blij','gelukkig'],
+  ['boos','kwaad'], ['kijken','zien'], ['praten','spreken'], ['beginnen','starten'],
+  ['maken','creeren'], ['kopen','aanschaffen'], ['huis','woning'], ['baan','werk']
+].map(group => group.map(normalize));
+function editDistance(a,b){
+  const row=Array.from({length:b.length+1},(_,i)=>i);
+  for(let i=1;i<=a.length;i++){
+    let previous=row[0]; row[0]=i;
+    for(let j=1;j<=b.length;j++){
+      const saved=row[j]; row[j]=Math.min(row[j]+1,row[j-1]+1,previous+(a[i-1]===b[j-1]?0:1)); previous=saved;
+    }
+  }
+  return row[b.length];
+}
+function answerVariants(value){ return value.split(/\s*(?:\/|;|,)\s*/).map(normalize).filter(Boolean); }
+function answersMatch(given, expected){
+  const attempts=answerVariants(given), answers=answerVariants(expected);
+  return attempts.some(attempt => answers.some(answer => {
+    if(attempt===answer)return true;
+    if(equivalentAnswers.some(group=>group.includes(attempt)&&group.includes(answer)))return true;
+    return Math.max(attempt.length,answer.length)>=5 && editDistance(attempt,answer)<=1;
+  }));
+}
 function listById(id){ return data.lists.find(list => list.id === id); }
 function showToast(message){ const toast=document.querySelector('#toast'); toast.textContent=message; toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>toast.classList.remove('show'),2200); }
 
@@ -104,9 +132,9 @@ function renderQuiz(){
 }
 function checkAnswer(event){
   event.preventDefault(); if(quiz.answered){nextQuestion();return;}
-  const input=document.querySelector('#answer'), feedback=document.querySelector('#answer-feedback'); const word=quiz.items[quiz.index]; const correct=normalize(input.value)===normalize(word.back);
+  const input=document.querySelector('#answer'), feedback=document.querySelector('#answer-feedback'); const word=quiz.items[quiz.index]; const exact=normalize(input.value)===normalize(word.back); const correct=answersMatch(input.value,word.back);
   quiz.answered=true; input.disabled=true;
-  if(correct){ quiz.correct++; quiz.streak++; const gained=10+Math.min(quiz.streak-1,5)*2; quiz.points+=gained; feedback.className='answer-feedback correct'; feedback.innerHTML=`✓ Goed! +${gained} XP`; }
+  if(correct){ quiz.correct++; quiz.streak++; const gained=10+Math.min(quiz.streak-1,5)*2; quiz.points+=gained; feedback.className='answer-feedback correct'; feedback.innerHTML=exact?`✓ Goed! +${gained} XP`:`✓ Goed — vergelijkbaar antwoord! +${gained} XP`; }
   else { quiz.streak=0; feedback.className='answer-feedback wrong'; feedback.innerHTML=`Niet helemaal — het antwoord is <strong>${esc(word.back)}</strong>`; }
   const button=event.submitter; button.textContent='→'; button.setAttribute('aria-label','Volgende vraag'); button.focus(); document.querySelector('#quiz-score').textContent=quiz.points;
 }
