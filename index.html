@@ -19,7 +19,7 @@
       <button data-route="library" class="nav-link">Lijsten</button>
       <button data-route="sentences" class="nav-link">Zinnen</button>
     </nav>
-    <div class="score-pill" aria-label="Totaal aantal punten"><span>●</span> <strong id="total-score">0</strong> XP</div>
+    <div class="top-actions"><button id="theme-toggle" class="theme-toggle" aria-label="Donker thema">◐</button><div class="score-pill" aria-label="Totaal aantal punten"><span>●</span> <strong id="total-score">0</strong> XP</div></div>
   </header>
 
   <main id="app" tabindex="-1">
@@ -96,6 +96,7 @@
         <div class="field-row"><label>Van<input id="language-from" maxlength="30" placeholder="Vietnamees" /></label><button type="button" class="swap" id="swap-languages" aria-label="Talen omwisselen">⇄</button><label>Naar<input id="language-to" maxlength="30" placeholder="Nederlands" /></label></div>
         <label>Woorden <span class="label-note">één paar per regel</span><textarea id="word-pairs" required rows="11" placeholder="xin chào = hallo\ncảm ơn = bedankt\ntạm biệt = tot ziens"></textarea></label>
         <p class="input-hint">Gebruik <strong>=</strong>, een tab of een puntkomma tussen het woord en de vertaling.</p>
+        <div class="photo-import"><input id="photo-input" type="file" accept="image/*" capture="environment" hidden><button type="button" class="btn btn-ghost" id="photo-import">Maak/importeer foto <span>▣</span></button><small id="photo-status">Tekst wordt toegevoegd als je browser fotoherkenning ondersteunt.</small></div>
         <div class="form-actions"><button type="button" class="btn btn-ghost" data-route="library">Annuleren</button><button type="submit" class="btn btn-dark">Lijst opslaan <span>→</span></button></div>
       </form>
     </section>
@@ -105,14 +106,16 @@
       <div class="detail-head"><div><p class="eyebrow" id="detail-languages">TAAL → TAAL</p><h1 id="detail-title">LIJST</h1><p id="detail-meta"></p></div><div class="detail-actions"><button class="icon-btn" id="edit-list">Bewerk</button><button class="icon-btn danger" id="delete-list">Verwijder</button></div></div>
       <div class="practice-options">
         <button class="practice-card" data-mode="type"><span class="practice-icon">Aa</span><div><b>Overhoren</b><small>Typ zelf de vertaling</small></div><i>→</i></button>
+        <button class="practice-card" data-mode="choice"><span class="practice-icon">ABC</span><div><b>Meerkeuze</b><small>Kies de juiste vertaling</small></div><i>→</i></button>
         <button class="practice-card" data-mode="cards"><span class="practice-icon">↻</span><div><b>Flashcards</b><small>Draai om en beoordeel jezelf</small></div><i>→</i></button>
+        <button class="practice-card" data-mode="mixed"><span class="practice-icon">∞</span><div><b>Gemixt oefenen</b><small>Typen, kiezen en flashcards door elkaar</small></div><i>→</i></button>
       </div>
       <div class="word-table-head"><h2>Alle woorden</h2><span id="word-count"></span></div>
       <div id="word-table" class="word-table"></div>
     </section>
 
     <section id="quiz-view" class="view quiz-shell">
-      <div class="quiz-top"><button class="quiz-close" id="quiz-close">×</button><div class="progress-track"><span id="quiz-progress"></span></div><div class="quiz-score"><span>●</span> <b id="quiz-score">0</b></div></div>
+      <div class="quiz-top"><button class="quiz-close" id="quiz-close">×</button><div class="progress-track"><span id="quiz-progress"></span></div><div class="quiz-tools"><button id="quiz-speak" aria-label="Luister naar uitspraak">◖))</button><button id="quiz-skip">Skip</button><div class="quiz-score"><span>●</span> <b id="quiz-score">0</b></div></div></div>
       <div id="quiz-stage" class="quiz-stage"></div>
     </section>
   </main>
