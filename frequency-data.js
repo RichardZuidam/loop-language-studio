@@ -11,7 +11,7 @@ window.VI_FREQUENCY_LISTS = [
       ['rồi','al / klaar / toen'],['ta','wij / men'],['đây','hier / dit'],['em','jij / jongere persoon'],['biết','weten / kennen'],
       ['ông','meneer / opa / hij'],['đến','komen / tot'],['khi','wanneer / toen'],['ra','naar buiten / uitkomen'],['lại','opnieuw / weer'],
       ['về','over / terug naar'],['nó','het / hij / zij'],['cũng','ook'],['con','kind / dier-classificeerder'],['nhưng','maar'],
-      ['nói','spreken / zeggen'],['có thể','kunnen / mogelijk'],['vào','naar binnen / in'],['mà','maar / dat / terwijl'],['đang','bezig zijn met'],
+      ['nói','spreken / zeggen'],['có thể','kunnen / misschien'],['vào','naar binnen / in'],['mà','maar / dat / terwijl'],['đang','bezig zijn met'],
       ['như','zoals'],['cậu','jij / vriend'],['còn','nog / overblijven'],['thì','dan / wat betreft'],['cái','ding / classificeerder'],
       ['chúng ta','wij (inclusief)'],['ấy','die / dat'],['chỉ','alleen / aanwijzen'],['bạn','vriend / jij'],['nhiều','veel'],
       ['muốn','willen'],['từ','van / uit / woord'],['sao','waarom / hoe'],['rất','erg / zeer'],['nào','welke / kom op'],
