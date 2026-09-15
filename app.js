@@ -82,6 +82,11 @@ function updateStats(){
   document.querySelector('#total-score').textContent=data.score;
   document.querySelector('#today-xp').textContent=`${data.todayXp}/${data.dailyGoal||50} XP`;
   document.querySelector('#best-streak').textContent=data.bestStreak;
+  const words=data.lists.flatMap(list=>list.words),today=new Date().toISOString().slice(0,10);
+  const due=words.filter(word=>word.reviewed&&(!word.due||word.due<=today)).length;
+  document.querySelector('#due-count')&&(document.querySelector('#due-count').textContent=due);
+  document.querySelector('#mastered-count')&&(document.querySelector('#mastered-count').textContent=words.filter(word=>(word.level||0)>=5).length);
+  document.querySelector('#learning-count')&&(document.querySelector('#learning-count').textContent=words.filter(word=>word.reviewed).length);
 }
 function cardHTML(list,index){
   const result=list.lastScore==null?'Nog niet geoefend':`${list.lastScore}% laatste score`;
@@ -155,6 +160,16 @@ function startSentenceQuiz(mode){
   quiz={kind:'sentence',mode,pack,items:shuffle(pack.sentences),index:0,correct:0,points:0,streak:0,answered:false,selected:[]};route('quiz');renderQuiz();
 }
 function shuffle(items){ const out=[...items]; for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]];} return out; }
+const REVIEW_INTERVALS=[0,1,3,7,14,30,60];
+function recordWordResult(word,correct){
+  word.reviewed=true;word.level=correct?Math.min(6,(word.level||0)+1):Math.max(0,(word.level||0)-1);
+  const date=new Date();date.setDate(date.getDate()+(correct?REVIEW_INTERVALS[word.level]:0));word.due=date.toISOString().slice(0,10);
+}
+function startDailyReview(){
+  const words=data.lists.flatMap(list=>list.words),today=new Date().toISOString().slice(0,10),due=words.filter(word=>word.reviewed&&(!word.due||word.due<=today)),fresh=words.filter(word=>!word.reviewed).slice(0,10),items=shuffle([...due,...fresh]).slice(0,20);
+  if(!items.length){showToast('Alles is voor vandaag herhaald');return;}
+  quiz={kind:'daily',mode:'mixed',list:{id:'daily-review',title:'Dagelijkse ronde',from:'Vietnamees',to:'Nederlands',words:items,lastScore:null},items,index:0,correct:0,points:0,streak:0,answered:false};route('quiz');renderQuiz();
+}
 function startQuiz(mode){
   const list=listById(activeListId); if(!list?.words.length)return;
   quiz={mode,list,items:shuffle(list.words),index:0,correct:0,points:0,streak:0,answered:false}; route('quiz'); renderQuiz();
@@ -183,11 +198,11 @@ function renderQuiz(){
 function checkChoice(answer){
   if(quiz.answered)return;const word=quiz.items[quiz.index],correct=answersMatch(answer,word.back),feedback=document.querySelector('#answer-feedback');quiz.answered=true;
   document.querySelectorAll('[data-choice]').forEach(button=>{button.disabled=true;if(answersMatch(button.dataset.choice,word.back))button.classList.add('is-correct');});
-  if(correct){quiz.correct++;quiz.streak++;quiz.points+=8;feedback.className='answer-feedback correct';feedback.innerHTML='✓ Goed! +8 XP <button class="feedback-next" id="choice-next">Volgende →</button>';}
-  else{quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`Niet helemaal — <strong>${esc(word.back)}</strong><div class="feedback-actions"><button id="accept-word">Toch goed rekenen</button><button id="choice-next">Volgende →</button></div>`;document.querySelector('#accept-word').addEventListener('click',acceptCurrentWord);}
+  if(correct){recordWordResult(word,true);quiz.correct++;quiz.streak++;quiz.points+=8;feedback.className='answer-feedback correct';feedback.innerHTML='✓ Goed! +8 XP <button class="feedback-next" id="choice-next">Volgende →</button>';}
+  else{recordWordResult(word,false);quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`Niet helemaal — <strong>${esc(word.back)}</strong><div class="feedback-actions"><button id="accept-word">Toch goed rekenen</button><button id="choice-next">Volgende →</button></div>`;document.querySelector('#accept-word').addEventListener('click',acceptCurrentWord);}
   document.querySelector('#choice-next').addEventListener('click',nextQuestion);document.querySelector('#quiz-score').textContent=quiz.points;
 }
-function acceptCurrentWord(){if(!quiz.answered)return;quiz.correct++;quiz.points+=6;nextQuestion();}
+function acceptCurrentWord(){if(!quiz.answered)return;recordWordResult(quiz.items[quiz.index],true);quiz.correct++;quiz.points+=6;nextQuestion();}
 function speakCurrent(){
   if(!('speechSynthesis' in window)||!quiz)return;const text=quiz.kind==='sentence'?quiz.items[quiz.index]?.vi:quiz.items[quiz.index]?.front;if(!text)return;
   speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang='vi-VN';utterance.rate=.82;speechSynthesis.speak(utterance);
@@ -227,12 +242,12 @@ function checkAnswer(event){
   event.preventDefault(); if(quiz.answered){nextQuestion();return;}
   const input=document.querySelector('#answer'), feedback=document.querySelector('#answer-feedback'); const word=quiz.items[quiz.index]; const exact=normalize(input.value)===normalize(word.back); const correct=answersMatch(input.value,word.back);
   quiz.answered=true; input.disabled=true;
-  if(correct){ quiz.correct++; quiz.streak++; const gained=10+Math.min(quiz.streak-1,5)*2; quiz.points+=gained; feedback.className='answer-feedback correct'; feedback.innerHTML=exact?`✓ Goed! +${gained} XP`:`✓ Goed — vergelijkbaar antwoord! +${gained} XP`; }
-  else { quiz.streak=0; feedback.className='answer-feedback wrong'; feedback.innerHTML=`Niet helemaal — het antwoord is <strong>${esc(word.back)}</strong><div class="feedback-actions"><button type="button" id="accept-word">Toch goed rekenen</button></div>`; document.querySelector('#accept-word').addEventListener('click',acceptCurrentWord); }
+  if(correct){ recordWordResult(word,true);quiz.correct++; quiz.streak++; const gained=10+Math.min(quiz.streak-1,5)*2; quiz.points+=gained; feedback.className='answer-feedback correct'; feedback.innerHTML=exact?`✓ Goed! +${gained} XP`:`✓ Goed — vergelijkbaar antwoord! +${gained} XP`; }
+  else { recordWordResult(word,false);quiz.streak=0; feedback.className='answer-feedback wrong'; feedback.innerHTML=`Niet helemaal — het antwoord is <strong>${esc(word.back)}</strong><div class="feedback-actions"><button type="button" id="accept-word">Toch goed rekenen</button></div>`; document.querySelector('#accept-word').addEventListener('click',acceptCurrentWord); }
   const button=event.submitter; button.textContent='→'; button.setAttribute('aria-label','Volgende vraag'); button.focus(); document.querySelector('#quiz-score').textContent=quiz.points;
 }
 function nextQuestion(){ quiz.index++; quiz.answered=false; renderQuiz(); }
-function rateCard(knew){ if(knew){quiz.correct++;quiz.points+=8;quiz.streak++;}else quiz.streak=0; quiz.index++; renderQuiz(); }
+function rateCard(knew){recordWordResult(quiz.items[quiz.index],Boolean(knew));if(knew){quiz.correct++;quiz.points+=8;quiz.streak++;}else quiz.streak=0; quiz.index++; renderQuiz(); }
 function finishQuiz(){
   const percent=Math.round(quiz.correct/quiz.items.length*100); const grade=(percent/10).toFixed(1).replace('.',',');
   if(quiz.kind==='sentence'){
@@ -244,13 +259,13 @@ function finishQuiz(){
   quiz.list.lastScore=percent; data.score+=quiz.points; data.todayXp+=quiz.points; data.bestStreak=Math.max(data.bestStreak,quiz.streak); saveData();
   document.querySelector('#quiz-progress').style.width='100%';
   document.querySelector('#quiz-stage').innerHTML=`<div class="result-card"><p class="quiz-kicker">SESSION COMPLETE</p><div class="result-grade">${grade}</div><h2>${percent>=80?'Sterk werk.':percent>=55?'Goed op weg.':'Nog één ronde.'}</h2><p>${quiz.correct} van de ${quiz.items.length} goed · +${quiz.points} XP</p><div class="result-actions"><button class="btn btn-ghost" id="result-back">Naar lijst</button><button class="btn btn-accent" id="result-again">Nog een ronde ↻</button></div></div>`;
-  document.querySelector('#result-back').addEventListener('click',()=>openList(quiz.list.id)); document.querySelector('#result-again').addEventListener('click',()=>startQuiz(quiz.mode));
+  document.querySelector('#result-back').addEventListener('click',()=>quiz.kind==='daily'?route('home'):openList(quiz.list.id)); document.querySelector('#result-again').addEventListener('click',()=>quiz.kind==='daily'?startDailyReview():startQuiz(quiz.mode));
 }
 
 document.querySelectorAll('[data-route]').forEach(b=>b.addEventListener('click',()=>route(b.dataset.route)));
-document.querySelector('#hero-create').addEventListener('click',newList); document.querySelector('#library-create').addEventListener('click',newList); document.querySelector('#home-see-all').addEventListener('click',()=>route('library'));
+document.querySelector('#hero-create').addEventListener('click',newList);document.querySelector('#daily-review').addEventListener('click',startDailyReview); document.querySelector('#library-create').addEventListener('click',newList); document.querySelector('#home-see-all').addEventListener('click',()=>route('library'));
 document.querySelector('#list-search').addEventListener('input',renderLibrary); document.querySelector('#edit-list').addEventListener('click',editList); document.querySelector('#delete-list').addEventListener('click',deleteList);
-document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startQuiz(b.dataset.mode))); document.querySelector('#quiz-close').addEventListener('click',()=>quiz?.kind==='sentence'?openSentencePack(quiz.pack.id):openList(quiz.list.id));
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startQuiz(b.dataset.mode))); document.querySelector('#quiz-close').addEventListener('click',()=>quiz?.kind==='sentence'?openSentencePack(quiz.pack.id):quiz?.kind==='daily'?route('home'):openList(quiz.list.id));
 document.querySelector('#quiz-speak').addEventListener('click',speakCurrent);document.querySelector('#quiz-skip').addEventListener('click',skipCurrent);
 document.querySelector('#sentence-create').addEventListener('click',newSentencePack);document.querySelector('#edit-sentence-pack').addEventListener('click',editSentencePack);document.querySelector('#delete-sentence-pack').addEventListener('click',deleteSentencePack);
 document.querySelectorAll('[data-sentence-mode]').forEach(button=>button.addEventListener('click',()=>startSentenceQuiz(button.dataset.sentenceMode)));
