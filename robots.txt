@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://richardzuidam.github.io/loop-language-studio/sitemap.xml
+
