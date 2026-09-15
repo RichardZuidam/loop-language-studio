@@ -39,6 +39,8 @@ function loadData(){
 function dayKey(date=new Date()){return date.toISOString().slice(0,10);}
 function prepareData(target){
   const today=dayKey();if(target.xpDate!==today){target.todayXp=0;target.xpDate=today;}if(!target.dailyGoal)target.dailyGoal=50;if(!target.activity)target.activity={};
+  const firstFrequency=(target.lists||[]).find(list=>list.id==='vi-frequency-1'||list.title==='Vietnamese frequentie 001–100');
+  if(firstFrequency){const sau=firstFrequency.words.find(word=>word.front==='sau');if(sau){sau.front='sau đó';sau.back='daarna / vervolgens';}const su=firstFrequency.words.find(word=>word.front==='sự');if(su){su.front='đằng sau';su.back='achter / aan de achterkant';}}
   (target.lists||[]).flatMap(list=>list.words||[]).forEach(word=>{word.correctCount=word.correctCount||0;word.wrongCount=word.wrongCount||0;});
   return target;
 }
