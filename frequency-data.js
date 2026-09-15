@@ -18,8 +18,8 @@ window.VI_FREQUENCY_LISTS = [
       ['trên','boven / op'],['mình','zelf / ik / lichaam'],['họ','zij (meervoud)'],['năm','jaar / vijf'],['hơn','meer / dan'],
       ['bị','ondergaan / getroffen worden'],['vậy','zo / dus'],['thấy','zien / vinden'],['nếu','als / indien'],['thế','zo / positie'],
       ['việc','werk / zaak'],['cần','nodig hebben / moeten'],['đâu','waar'],['nhà','huis / thuis'],['tới','komen / tot'],
-      ['lên','omhoog / op'],['sau','na / achter'],['thôi','alleen / stop / maar'],['cả','alle / heel'],['ai','wie'],
-      ['theo','volgen / volgens'],['nên','zouden moeten / daarom'],['chuyện','zaak / verhaal'],['sự','nominaliserend voorvoegsel'],['chưa','nog niet'],
+      ['lên','omhoog / op'],['sau đó','daarna / vervolgens'],['thôi','alleen / stop / maar'],['cả','alle / heel'],['ai','wie'],
+      ['theo','volgen / volgens'],['nên','zouden moeten / daarom'],['chuyện','zaak / verhaal'],['đằng sau','achter / aan de achterkant'],['chưa','nog niet'],
       ['nghĩ','denken'],['vì','omdat / voor'],['nữa','nog / meer'],['đấy','dat / daar'],['hắn','hij (informeel)'],
       ['điều','ding / kwestie'],['ngày','dag'],['mới','nieuw / pas'],['trước','voor / eerder'],['tại','bij / omdat'],
       ['thứ','ding / rangtelwoord'],['khác','anders / verschillend'],['mọi','elk / alle'],['hay','of / goed / vaak'],['nhất','meest / eerste']
