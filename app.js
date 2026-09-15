@@ -9,6 +9,7 @@ const starterSentencePacks = (window.LOOP_SENTENCE_PACKS || []).map(pack => ({
 }));
 const seed = {
   score: 0, bestStreak: 0, todayXp: 0, xpDate: new Date().toISOString().slice(0,10), dailyGoal: 50,
+  activity: {},
   sentencePacks: starterSentencePacks,
   lists: [{
     id: 'vietnamese-starter', title: 'Vietnamees — Start', from: 'Vietnamees', to: 'Nederlands', createdAt: Date.now(), lastScore: null,
@@ -21,7 +22,7 @@ const seed = {
 };
 const hadLegacyData = Boolean(localStorage.getItem(STORAGE_KEY));
 function freshAccountData(){
-  return {score:0,bestStreak:0,todayXp:0,xpDate:new Date().toISOString().slice(0,10),dailyGoal:50,sentencePacks:[],lists:[structuredClone(seed.lists[0])]};
+  return {score:0,bestStreak:0,todayXp:0,xpDate:new Date().toISOString().slice(0,10),dailyGoal:50,activity:{},sentencePacks:[],lists:[structuredClone(seed.lists[0])]};
 }
 let data = loadData();
 let activeListId = null, editingId = null, quiz = null, activeSentencePackId = null, editingSentencePackId = null, cloudUser = null, cloudSaveTimer = null;
@@ -32,8 +33,14 @@ function loadData(){
     if(!stored) return structuredClone(seed);
     if(!Array.isArray(stored.sentencePacks)) stored.sentencePacks=structuredClone(starterSentencePacks);
     starterSentencePacks.forEach(pack=>{if(!stored.sentencePacks.some(item=>item.id===pack.id))stored.sentencePacks.push(structuredClone(pack));});
-    const today=new Date().toISOString().slice(0,10);if(stored.xpDate!==today){stored.todayXp=0;stored.xpDate=today;}if(!stored.dailyGoal)stored.dailyGoal=50;return stored;
+    prepareData(stored);return stored;
   } catch { return structuredClone(seed); }
+}
+function dayKey(date=new Date()){return date.toISOString().slice(0,10);}
+function prepareData(target){
+  const today=dayKey();if(target.xpDate!==today){target.todayXp=0;target.xpDate=today;}if(!target.dailyGoal)target.dailyGoal=50;if(!target.activity)target.activity={};
+  (target.lists||[]).flatMap(list=>list.words||[]).forEach(word=>{word.correctCount=word.correctCount||0;word.wrongCount=word.wrongCount||0;});
+  return target;
 }
 function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateStats(); scheduleCloudSave(); }
 function esc(value=''){ return value.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
@@ -76,7 +83,20 @@ function route(name){
   if(name==='home') renderHome();
   if(name==='library') renderLibrary();
   if(name==='sentences') renderSentencePacks();
+  if(name==='statistics') renderStatistics();
   window.scrollTo(0,0); document.querySelector('#app').focus({preventScroll:true});
+}
+function dateLabel(key){return new Intl.DateTimeFormat('nl-NL',{weekday:'short'}).format(new Date(`${key}T12:00:00`)).replace('.','');}
+function currentStreak(){let streak=0,date=new Date();while((data.activity?.[dayKey(date)]||0)>0){streak++;date.setDate(date.getDate()-1);}return streak;}
+function renderStatistics(){
+  prepareData(data);const days=Array.from({length:7},(_,i)=>{const date=new Date();date.setDate(date.getDate()-(6-i));const key=dayKey(date);return{key,xp:data.activity[key]||0};}),max=Math.max(1,...days.map(day=>day.xp));
+  document.querySelector('#current-streak').textContent=`${currentStreak()} ${currentStreak()===1?'dag':'dagen'}`;
+  document.querySelector('#week-xp').textContent=`${days.reduce((sum,day)=>sum+day.xp,0)} XP`;
+  const future=data.lists.flatMap(list=>list.words).filter(word=>word.due).map(word=>word.due).sort()[0];document.querySelector('#next-review').textContent=future?(future<=dayKey()?'Vandaag':new Intl.DateTimeFormat('nl-NL',{day:'numeric',month:'short'}).format(new Date(`${future}T12:00:00`))):'Nog niets gepland';
+  document.querySelector('#activity-chart').innerHTML=days.map(day=>`<div class="activity-day"><span>${day.xp}</span><i style="height:${Math.max(4,day.xp/max*100)}%"></i><b>${dateLabel(day.key)}</b></div>`).join('');
+  const hardest=data.lists.flatMap(list=>list.words.map(word=>({...word,listTitle:list.title}))).filter(word=>word.wrongCount).sort((a,b)=>b.wrongCount-a.wrongCount).slice(0,5);
+  document.querySelector('#hardest-words').innerHTML=hardest.length?hardest.map((word,i)=>`<div><span>${i+1}</span><b>${esc(word.front)}</b><small>${word.wrongCount}× fout · ${esc(word.listTitle)}</small></div>`).join(''):'<p class="stats-empty">Nog geen moeilijke woorden. Start een ronde.</p>';
+  document.querySelector('#list-progress').innerHTML=data.lists.length?data.lists.map(list=>{const mastered=list.words.filter(word=>(word.level||0)>=5).length,percent=list.words.length?Math.round(mastered/list.words.length*100):0;return`<div><header><b>${esc(list.title)}</b><span>${percent}% · ${mastered}/${list.words.length}</span></header><i><span style="width:${percent}%"></span></i></div>`;}).join(''):'<p class="stats-empty">Maak eerst een woordenlijst.</p>';
 }
 function updateStats(){
   document.querySelector('#total-score').textContent=data.score;
@@ -163,6 +183,7 @@ function shuffle(items){ const out=[...items]; for(let i=out.length-1;i>0;i--){c
 const REVIEW_INTERVALS=[0,1,3,7,14,30,60];
 function recordWordResult(word,correct){
   word.reviewed=true;word.level=correct?Math.min(6,(word.level||0)+1):Math.max(0,(word.level||0)-1);
+  word.correctCount=(word.correctCount||0)+(correct?1:0);word.wrongCount=(word.wrongCount||0)+(correct?0:1);word.lastReviewed=new Date().toISOString();
   const date=new Date();date.setDate(date.getDate()+(correct?REVIEW_INTERVALS[word.level]:0));word.due=date.toISOString().slice(0,10);
 }
 function startDailyReview(){
@@ -251,12 +272,12 @@ function rateCard(knew){recordWordResult(quiz.items[quiz.index],Boolean(knew));i
 function finishQuiz(){
   const percent=Math.round(quiz.correct/quiz.items.length*100); const grade=(percent/10).toFixed(1).replace('.',',');
   if(quiz.kind==='sentence'){
-    quiz.pack.lastScore=percent;data.score+=quiz.points;data.todayXp+=quiz.points;data.bestStreak=Math.max(data.bestStreak,quiz.streak);saveData();
+    quiz.pack.lastScore=percent;data.score+=quiz.points;data.todayXp+=quiz.points;data.activity[dayKey()]=(data.activity[dayKey()]||0)+quiz.points;data.bestStreak=Math.max(data.bestStreak,quiz.streak,currentStreak());saveData();
     document.querySelector('#quiz-progress').style.width='100%';
     document.querySelector('#quiz-stage').innerHTML=`<div class="result-card"><p class="quiz-kicker">SENTENCE SESSION COMPLETE</p><div class="result-grade">${grade}</div><h2>${percent>=80?'Sterk gebouwd.':percent>=55?'Goed op weg.':'Nog één ronde.'}</h2><p>${quiz.correct} van de ${quiz.items.length} goed · +${quiz.points} XP</p><div class="result-actions"><button class="btn btn-ghost" id="result-back">Naar thema</button><button class="btn btn-accent" id="result-again">Nog een ronde ↻</button></div></div>`;
     document.querySelector('#result-back').addEventListener('click',()=>openSentencePack(quiz.pack.id));document.querySelector('#result-again').addEventListener('click',()=>startSentenceQuiz(quiz.mode));return;
   }
-  quiz.list.lastScore=percent; data.score+=quiz.points; data.todayXp+=quiz.points; data.bestStreak=Math.max(data.bestStreak,quiz.streak); saveData();
+  quiz.list.lastScore=percent; data.score+=quiz.points; data.todayXp+=quiz.points;data.activity[dayKey()]=(data.activity[dayKey()]||0)+quiz.points; data.bestStreak=Math.max(data.bestStreak,quiz.streak,currentStreak()); saveData();
   document.querySelector('#quiz-progress').style.width='100%';
   document.querySelector('#quiz-stage').innerHTML=`<div class="result-card"><p class="quiz-kicker">SESSION COMPLETE</p><div class="result-grade">${grade}</div><h2>${percent>=80?'Sterk werk.':percent>=55?'Goed op weg.':'Nog één ronde.'}</h2><p>${quiz.correct} van de ${quiz.items.length} goed · +${quiz.points} XP</p><div class="result-actions"><button class="btn btn-ghost" id="result-back">Naar lijst</button><button class="btn btn-accent" id="result-again">Nog een ronde ↻</button></div></div>`;
   document.querySelector('#result-back').addEventListener('click',()=>quiz.kind==='daily'?route('home'):openList(quiz.list.id)); document.querySelector('#result-again').addEventListener('click',()=>quiz.kind==='daily'?startDailyReview():startQuiz(quiz.mode));
@@ -299,7 +320,7 @@ function scheduleCloudSave(){if(!cloudUser||!supabaseClient)return;clearTimeout(
 async function activateAccount(user){
   cloudUser=user;authGate.classList.add('hidden');document.querySelector('#account-button').title=user.email||'Account';
   const {data:row,error}=await supabaseClient.from('user_state').select('data').eq('user_id',user.id).maybeSingle();
-  if(row?.data){data=row.data;}
+  if(row?.data){data=prepareData(row.data);}
   else if(!error){
     const mayImport=hadLegacyData&&!localStorage.getItem('loop-owner-migrated');
     data=mayImport?data:freshAccountData();
