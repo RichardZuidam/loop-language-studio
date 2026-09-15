@@ -8,7 +8,7 @@ const starterSentencePacks = (window.LOOP_SENTENCE_PACKS || []).map(pack => ({
   ...pack, lastScore: null, sentences: pack.sentences.map(([vi,nl,literal,note])=>({vi,nl,literal,note,mastery:0}))
 }));
 const seed = {
-  score: 0, bestStreak: 0, todayXp: 0,
+  score: 0, bestStreak: 0, todayXp: 0, xpDate: new Date().toISOString().slice(0,10), dailyGoal: 50,
   sentencePacks: starterSentencePacks,
   lists: [{
     id: 'vietnamese-starter', title: 'Vietnamees — Start', from: 'Vietnamees', to: 'Nederlands', createdAt: Date.now(), lastScore: null,
@@ -21,7 +21,7 @@ const seed = {
 };
 const hadLegacyData = Boolean(localStorage.getItem(STORAGE_KEY));
 function freshAccountData(){
-  return {score:0,bestStreak:0,todayXp:0,sentencePacks:[],lists:[structuredClone(seed.lists[0])]};
+  return {score:0,bestStreak:0,todayXp:0,xpDate:new Date().toISOString().slice(0,10),dailyGoal:50,sentencePacks:[],lists:[structuredClone(seed.lists[0])]};
 }
 let data = loadData();
 let activeListId = null, editingId = null, quiz = null, activeSentencePackId = null, editingSentencePackId = null, cloudUser = null, cloudSaveTimer = null;
@@ -32,7 +32,7 @@ function loadData(){
     if(!stored) return structuredClone(seed);
     if(!Array.isArray(stored.sentencePacks)) stored.sentencePacks=structuredClone(starterSentencePacks);
     starterSentencePacks.forEach(pack=>{if(!stored.sentencePacks.some(item=>item.id===pack.id))stored.sentencePacks.push(structuredClone(pack));});
-    return stored;
+    const today=new Date().toISOString().slice(0,10);if(stored.xpDate!==today){stored.todayXp=0;stored.xpDate=today;}if(!stored.dailyGoal)stored.dailyGoal=50;return stored;
   } catch { return structuredClone(seed); }
 }
 function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateStats(); scheduleCloudSave(); }
@@ -80,7 +80,7 @@ function route(name){
 }
 function updateStats(){
   document.querySelector('#total-score').textContent=data.score;
-  document.querySelector('#today-xp').textContent=`${data.todayXp} XP`;
+  document.querySelector('#today-xp').textContent=`${data.todayXp}/${data.dailyGoal||50} XP`;
   document.querySelector('#best-streak').textContent=data.bestStreak;
 }
 function cardHTML(list,index){
@@ -296,8 +296,12 @@ async function activateAccount(user){
 document.querySelectorAll('[data-auth-tab]').forEach(button=>button.addEventListener('click',()=>{authMode=button.dataset.authTab;document.querySelectorAll('[data-auth-tab]').forEach(item=>item.classList.toggle('active',item===button));authSubmit.textContent=authMode==='login'?'Inloggen →':'Account maken →';authMessage.textContent='';}));
 document.querySelector('#auth-form').addEventListener('submit',async event=>{event.preventDefault();const email=document.querySelector('#auth-email').value.trim(),password=document.querySelector('#auth-password').value;authSubmit.disabled=true;authMessage.textContent='Even geduld…';const result=authMode==='signup'?await supabaseClient.auth.signUp({email,password}):await supabaseClient.auth.signInWithPassword({email,password});authSubmit.disabled=false;if(result.error){authMessage.textContent=result.error.message;return;}if(result.data.session)await activateAccount(result.data.user);else authMessage.textContent='Controleer je e-mail en bevestig je account.';});
 document.querySelector('#forgot-password').addEventListener('click',async()=>{const email=document.querySelector('#auth-email').value.trim();if(!email){authMessage.textContent='Vul eerst je e-mailadres in.';return;}const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.href});authMessage.textContent=error?error.message:'Herstellink verstuurd naar je e-mail.';});
-document.querySelector('#account-button').addEventListener('click',async()=>{if(cloudUser&&confirm(`Uitloggen als ${cloudUser.email}?`)){await supabaseClient.auth.signOut();cloudUser=null;data=freshAccountData();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();authGate.classList.remove('hidden');}});
-if(supabaseClient)supabaseClient.auth.getSession().then(({data:{session}})=>session?activateAccount(session.user):authGate.classList.remove('hidden'));else authMessage.textContent='De accountverbinding kon niet worden geladen.';
+document.querySelector('#auth-close').addEventListener('click',()=>authGate.classList.add('hidden'));
+document.querySelector('#account-close').addEventListener('click',()=>document.querySelector('#account-modal').classList.add('hidden'));
+document.querySelector('#account-button').addEventListener('click',()=>{if(cloudUser){document.querySelector('#account-email').textContent=cloudUser.email;document.querySelector('#account-modal').classList.remove('hidden');}else authGate.classList.remove('hidden');});
+document.querySelector('#logout-button').addEventListener('click',async()=>{await supabaseClient.auth.signOut();cloudUser=null;data=freshAccountData();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();document.querySelector('#account-modal').classList.add('hidden');showToast('Je bent uitgelogd');});
+document.querySelector('#export-data').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`loop-export-${new Date().toISOString().slice(0,10)}.json`;link.click();URL.revokeObjectURL(link.href);});
+if(supabaseClient)supabaseClient.auth.getSession().then(({data:{session}})=>session&&activateAccount(session.user));else authMessage.textContent='De accountverbinding kon niet worden geladen.';
 updateStats(); renderHome();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
 
