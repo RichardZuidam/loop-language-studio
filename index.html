@@ -7,7 +7,7 @@
   <meta name="description" content="Persoonlijke language learning studio voor woorden, zinnen en uitspraak." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=10" />
+  <link rel="stylesheet" href="styles.css?v=11" />
   <title>LOOP — Language Studio</title>
 </head>
 <body>
@@ -31,7 +31,7 @@
           <p class="eyebrow">YOUR PERSONAL LANGUAGE SYSTEM / 01</p>
           <h1>WORDS<br><em>THAT STICK.</em></h1>
           <p class="intro">Maak je eigen woordenlijsten. Oefen slim. Bouw elke dag aan een taal die van jou wordt.</p>
-          <button class="btn btn-accent" id="hero-create">Nieuwe lijst <span>↗</span></button>
+          <div class="hero-actions"><button class="btn btn-accent" id="daily-review">Dagelijkse ronde <span>→</span></button><button class="btn btn-ghost" id="hero-create">Nieuwe lijst <span>↗</span></button></div>
         </div>
         <aside class="hero-card">
           <div class="motif"><span>L</span><span>O</span><span>O</span><span>P</span></div>
@@ -39,6 +39,8 @@
           <div class="hero-stat"><span>Beste reeks</span><strong id="best-streak">0</strong></div>
         </aside>
       </div>
+
+      <section class="learning-dashboard"><article><span>VANDAAG TE DOEN</span><strong id="due-count">0</strong></article><article><span>BEHEERST</span><strong id="mastered-count">0</strong></article><article><span>OOIT GEOEFEND</span><strong id="learning-count">0</strong></article></section>
 
       <section class="section-block">
         <div class="section-heading"><div><p class="eyebrow">CONTINUE LEARNING</p><h2>Jouw lijsten</h2></div><button class="text-button" id="home-see-all">Bekijk alles →</button></div>
@@ -125,10 +127,10 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <footer class="site-footer"><span>© LOOP LANGUAGE STUDIO</span><nav><a href="learn-vietnamese.html">Gratis Vietnamees</a><a href="privacy.html">Privacy</a></nav></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=10"></script>
-  <script src="frequency-data.js?v=10"></script>
-  <script src="sentence-data.js?v=10"></script>
-  <script src="app.js?v=10"></script>
+  <script src="supabase-config.js?v=11"></script>
+  <script src="frequency-data.js?v=11"></script>
+  <script src="sentence-data.js?v=11"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>
 
