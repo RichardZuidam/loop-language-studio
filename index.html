@@ -7,7 +7,7 @@
   <meta name="description" content="Persoonlijke language learning studio voor woorden, zinnen en uitspraak." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=11" />
+  <link rel="stylesheet" href="styles.css?v=12" />
   <title>LOOP — Language Studio</title>
 </head>
 <body>
@@ -20,6 +20,7 @@
       <button data-route="home" class="nav-link active">Home</button>
       <button data-route="library" class="nav-link">Lijsten</button>
       <button data-route="sentences" class="nav-link">Zinnen</button>
+      <button data-route="statistics" class="nav-link">Stats</button>
     </nav>
     <div class="top-actions"><button id="account-button" class="theme-toggle" aria-label="Account en uitloggen">●</button><button id="theme-toggle" class="theme-toggle" aria-label="Donker thema">◐</button><div class="score-pill" aria-label="Totaal aantal punten"><span>●</span> <strong id="total-score">0</strong> XP</div></div>
   </header>
@@ -68,6 +69,20 @@
       <div class="page-head"><div><p class="eyebrow">SENTENCE STUDIO / 02</p><h1>ZINNEN<br><em>IN CONTEXT.</em></h1></div><button class="btn btn-accent" id="sentence-create">+ Nieuwe zinnen</button></div>
       <div class="toolbar"><span>Leer betekenis én woordvolgorde</span><span id="sentence-pack-count"></span></div>
       <div id="sentence-packs" class="sentence-grid"></div>
+    </section>
+
+    <section id="statistics-view" class="view stats-view">
+      <div class="page-head"><div><p class="eyebrow">YOUR PROGRESS / 03</p><h1>JOUW<br><em>GROEI.</em></h1></div></div>
+      <section class="stats-summary">
+        <article><span>HUIDIGE REEKS</span><strong id="current-streak">0 dagen</strong></article>
+        <article><span>DEZE WEEK</span><strong id="week-xp">0 XP</strong></article>
+        <article><span>VOLGENDE HERHALING</span><strong id="next-review">—</strong></article>
+      </section>
+      <div class="stats-grid">
+        <section class="stats-panel"><div class="section-heading"><div><p class="eyebrow">LAST 7 DAYS</p><h2>Weekactiviteit</h2></div></div><div id="activity-chart" class="activity-chart"></div></section>
+        <section class="stats-panel"><div class="section-heading"><div><p class="eyebrow">NEEDS ATTENTION</p><h2>Moeilijke woorden</h2></div></div><div id="hardest-words" class="ranking-list"></div></section>
+        <section class="stats-panel stats-wide"><div class="section-heading"><div><p class="eyebrow">PER LIST</p><h2>Voortgang per lijst</h2></div></div><div id="list-progress" class="progress-list"></div></section>
+      </div>
     </section>
 
     <section id="sentence-editor-view" class="view narrow">
@@ -127,10 +142,10 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <footer class="site-footer"><span>© LOOP LANGUAGE STUDIO</span><nav><a href="learn-vietnamese.html">Gratis Vietnamees</a><a href="privacy.html">Privacy</a></nav></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=11"></script>
-  <script src="frequency-data.js?v=11"></script>
-  <script src="sentence-data.js?v=11"></script>
-  <script src="app.js?v=11"></script>
+  <script src="supabase-config.js?v=12"></script>
+  <script src="frequency-data.js?v=12"></script>
+  <script src="sentence-data.js?v=12"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>
 
