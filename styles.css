@@ -33,5 +33,6 @@ main{max-width:1440px;margin:auto}.view{display:none}.view.active{display:block}
 .account-button{height:40px;border:1px solid var(--ink);border-radius:99px;background:transparent;padding:0 16px;font:500 10px 'DM Mono';text-transform:uppercase;letter-spacing:.05em;display:grid;place-items:center}
 .dark-theme .account-button{color:#f3f1e8;border-color:#666}
 .dark-theme .ticker{color:var(--ink)}
-@media(max-width:760px){.topbar{grid-template-columns:auto 1fr auto;padding:0 10px}.theme-toggle{display:none}.account-button{height:34px;padding:0 10px;font-size:8px}.score-pill{height:34px;padding:0 8px}.topbar nav{gap:9px}.nav-link{font-size:8px}}
+.language-picker select{height:40px;border:1px solid var(--ink);border-radius:99px;background:transparent;padding:0 10px;font:500 10px 'DM Mono';outline:0}.dark-theme .language-picker select{color:#f3f1e8;border-color:#666;background:#11110f}.language-picker option{color:#171714;background:#faf9f4}
+@media(max-width:760px){.topbar{grid-template-columns:auto 1fr auto;padding:0 8px;gap:5px}.theme-toggle,.score-pill{display:none}.language-picker select{height:34px;padding:0 6px;font-size:8px}.account-button{height:34px;padding:0 8px;font-size:8px}.topbar nav{gap:7px}.nav-link{font-size:7px}}
 
