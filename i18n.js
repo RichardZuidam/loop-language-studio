@@ -19,7 +19,7 @@
       'Nog geen moeilijke woorden. Start een ronde.':'No difficult words yet. Start a round.','Maak eerst een woordenlijst.':'Create a word list first.','Nog niets gepland':'Nothing scheduled','Vandaag':'Today',
       'Nog geen lijsten':'No lists yet','Maak je eerste woordenlijst en begin met leren.':'Create your first word list and start learning.','Nog niet geoefend':'Not practised yet','Nog één ronde.':'One more round.','Goed op weg.':'Good progress.','Sterk werk.':'Great work.','Sterk gebouwd.':'Well built.',
       'Naar lijst':'Back to list','Naar thema':'Back to theme','Nog een ronde ↻':'Another round ↻','Controleer':'Check','Volgende →':'Next →','Nog leren':'Keep learning','Ik wist het':'I knew it','Toch goed rekenen':'Mark as correct','Mijn antwoord goedkeuren':'Accept my answer',
-      'Typ de vertaling…':'Type the translation…','Typ de Vietnamese zin…':'Type the Vietnamese sentence…','Alles is voor vandaag herhaald':'Everything for today is reviewed','Je bent uitgelogd':'You are logged out','Online opslaan lukt nog niet':'Online saving is not working yet','Even geduld…':'One moment…'
+      'Typ de vertaling…':'Type the translation…','Typ de Vietnamese zin…':'Type the Vietnamese sentence…','Alles is voor vandaag herhaald':'Everything for today is reviewed','Je bent uitgelogd':'You are logged out','Online opslaan lukt nog niet':'Online saving is not working yet','Even geduld…':'One moment…','Leren in context':'Learn in context','Leg de functie van het woord uit':'Explain the word’s function','Wat betekent of doet':'What does','in deze zin?':'mean or do in this sentence?','Leg het in je eigen woorden uit…':'Explain it in your own words…','Mijn uitleg ook goedkeuren':'Accept my explanation too','Goede uitleg!':'Good explanation!'
     },
     ru: {
       'Home':'Главная','Lijsten':'Списки','Zinnen':'Предложения','Stats':'Статистика','Inloggen':'Войти','Account':'Аккаунт','Uitloggen':'Выйти',
@@ -40,11 +40,11 @@
       'Nog geen moeilijke woorden. Start een ronde.':'Сложных слов пока нет. Начни тренировку.','Maak eerst een woordenlijst.':'Сначала создай список слов.','Nog niets gepland':'Пока ничего не запланировано',
       'Nog geen lijsten':'Списков пока нет','Maak je eerste woordenlijst en begin met leren.':'Создай первый список и начни учиться.','Nog niet geoefend':'Ещё не изучалось','Nog één ronde.':'Ещё один раунд.','Goed op weg.':'Хороший прогресс.','Sterk werk.':'Отличная работа.','Sterk gebouwd.':'Отлично составлено.',
       'Naar lijst':'К списку','Naar thema':'К теме','Nog een ronde ↻':'Ещё один раунд ↻','Controleer':'Проверить','Volgende →':'Далее →','Nog leren':'Повторить','Ik wist het':'Я знал','Toch goed rekenen':'Засчитать правильным','Mijn antwoord goedkeuren':'Принять мой ответ',
-      'Typ de vertaling…':'Напиши перевод…','Typ de Vietnamese zin…':'Напиши предложение на вьетнамском…','Alles is voor vandaag herhaald':'На сегодня всё повторено','Je bent uitgelogd':'Вы вышли из аккаунта','Online opslaan lukt nog niet':'Не удалось сохранить онлайн','Even geduld…':'Подождите…'
+      'Typ de vertaling…':'Напиши перевод…','Typ de Vietnamese zin…':'Напиши предложение на вьетнамском…','Alles is voor vandaag herhaald':'На сегодня всё повторено','Je bent uitgelogd':'Вы вышли из аккаунта','Online opslaan lukt nog niet':'Не удалось сохранить онлайн','Even geduld…':'Подождите…','Leren in context':'Учить в контексте','Leg de functie van het woord uit':'Объясни функцию слова','Wat betekent of doet':'Что означает или делает','in deze zin?':'в этом предложении?','Leg het in je eigen woorden uit…':'Объясни своими словами…','Mijn uitleg ook goedkeuren':'Засчитать моё объяснение','Goede uitleg!':'Хорошее объяснение!'
     }
   };
   const originals = new WeakMap();
-  const excluded = '.word-row,.sentence-row,.quiz-word,.sentence-prompt,.flash-face strong,.list-card h3,.sentence-pack h2,input,textarea,option';
+  const excluded = '.word-row,.sentence-row,.quiz-word,.sentence-prompt,.context-example,.context-translation,.flash-face strong,.list-card h3,.sentence-pack h2,input,textarea,option';
   let language = localStorage.getItem('loop-language') || 'nl';
   const translateValue = value => {
     if(language==='nl') return value;
