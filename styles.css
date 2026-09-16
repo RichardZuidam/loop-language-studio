@@ -32,5 +32,6 @@ main{max-width:1440px;margin:auto}.view{display:none}.view.active{display:block}
 .score-pill{height:40px;display:flex;align-items:center;justify-content:center;padding:0 14px;white-space:nowrap}
 .account-button{height:40px;border:1px solid var(--ink);border-radius:99px;background:transparent;padding:0 16px;font:500 10px 'DM Mono';text-transform:uppercase;letter-spacing:.05em;display:grid;place-items:center}
 .dark-theme .account-button{color:#f3f1e8;border-color:#666}
+.dark-theme .ticker{color:var(--ink)}
 @media(max-width:760px){.topbar{grid-template-columns:auto 1fr auto;padding:0 10px}.theme-toggle{display:none}.account-button{height:34px;padding:0 10px;font-size:8px}.score-pill{height:34px;padding:0 8px}.topbar nav{gap:9px}.nav-link{font-size:8px}}
 
