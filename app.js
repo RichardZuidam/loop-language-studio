@@ -321,7 +321,7 @@ const authGate=document.querySelector('#auth-gate'),authMessage=document.querySe
 const supabaseClient=window.supabase?.createClient(window.LOOP_SUPABASE.url,window.LOOP_SUPABASE.key);
 function scheduleCloudSave(){if(!cloudUser||!supabaseClient)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(async()=>{const {error}=await supabaseClient.from('user_state').upsert({user_id:cloudUser.id,data,updated_at:new Date().toISOString()});if(error)showToast('Online opslaan lukt nog niet');},500);}
 async function activateAccount(user){
-  cloudUser=user;authGate.classList.add('hidden');document.querySelector('#account-button').title=user.email||'Account';
+  cloudUser=user;authGate.classList.add('hidden');const accountButton=document.querySelector('#account-button');accountButton.textContent='Account';accountButton.title=user.email||'Account';
   const {data:row,error}=await supabaseClient.from('user_state').select('data').eq('user_id',user.id).maybeSingle();
   if(row?.data){data=prepareData(row.data);}
   else if(!error){
@@ -338,7 +338,7 @@ document.querySelector('#forgot-password').addEventListener('click',async()=>{co
 document.querySelector('#auth-close').addEventListener('click',()=>authGate.classList.add('hidden'));
 document.querySelector('#account-close').addEventListener('click',()=>document.querySelector('#account-modal').classList.add('hidden'));
 document.querySelector('#account-button').addEventListener('click',()=>{if(cloudUser){document.querySelector('#account-email').textContent=cloudUser.email;document.querySelector('#account-modal').classList.remove('hidden');}else authGate.classList.remove('hidden');});
-document.querySelector('#logout-button').addEventListener('click',async()=>{await supabaseClient.auth.signOut();cloudUser=null;data=freshAccountData();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();document.querySelector('#account-modal').classList.add('hidden');showToast('Je bent uitgelogd');});
+document.querySelector('#logout-button').addEventListener('click',async()=>{await supabaseClient.auth.signOut();cloudUser=null;document.querySelector('#account-button').textContent='Inloggen';data=freshAccountData();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();document.querySelector('#account-modal').classList.add('hidden');showToast('Je bent uitgelogd');});
 document.querySelector('#export-data').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`loop-export-${new Date().toISOString().slice(0,10)}.json`;link.click();URL.revokeObjectURL(link.href);});
 if(supabaseClient)supabaseClient.auth.getSession().then(({data:{session}})=>session&&activateAccount(session.user));else authMessage.textContent='De accountverbinding kon niet worden geladen.';
 updateStats(); renderHome();
