@@ -43,8 +43,50 @@
       'Typ de vertaling…':'Напиши перевод…','Typ de Vietnamese zin…':'Напиши предложение на вьетнамском…','Alles is voor vandaag herhaald':'На сегодня всё повторено','Je bent uitgelogd':'Вы вышли из аккаунта','Online opslaan lukt nog niet':'Не удалось сохранить онлайн','Even geduld…':'Подождите…','Leren in context':'Учить в контексте','Leg de functie van het woord uit':'Объясни функцию слова','Wat betekent of doet':'Что означает или делает','in deze zin?':'в этом предложении?','Leg het in je eigen woorden uit…':'Объясни своими словами…','Mijn uitleg ook goedkeuren':'Засчитать моё объяснение','Goede uitleg!':'Хорошее объяснение!'
     }
   };
+  Object.assign(translations.en, {
+    'WOORDEN':'WORDS','LIJSTEN.':'LISTS.','ZINNEN':'SENTENCES','IN CONTEXT.':'IN CONTEXT.','JOUW':'YOUR','GROEI.':'GROWTH.',
+    'YOUR COLLECTION':'YOUR COLLECTION','YOUR PROGRESS / 03':'YOUR PROGRESS / 03','YOUR PERSONAL LANGUAGE SYSTEM / 01':'YOUR PERSONAL LANGUAGE SYSTEM / 01','WORDS':'WORDS','THAT STICK.':'THAT STICK.',
+    'HUIDIGE REEKS':'CURRENT STREAK','DEZE WEEK':'THIS WEEK','VOLGENDE HERHALING':'NEXT REVIEW','VANDAAG TE DOEN':'DUE TODAY','BEHEERST':'MASTERED','OOIT GEOEFEND':'PRACTISED',
+    'Vietnamees':'Vietnamese','Nederlands':'Dutch','Vietnamees → Nederlands':'Vietnamese → Dutch','VIETNAMEES → NEDERLANDS':'VIETNAMESE → DUTCH','TAAL → TAAL':'LANGUAGE → LANGUAGE',
+    'Vietnamese frequentie 001–100':'Vietnamese frequency 001–100','Vietnamese frequentie 101–200':'Vietnamese frequency 101–200','Vietnamese frequentie 201–300':'Vietnamese frequency 201–300','Vietnamees — Start':'Vietnamese — Starter',
+    'Elke dag':'Every day','Gewone zinnen voor je dagelijkse routine.':'Common sentences for your daily routine.','Kennismaken':'Introductions','Begroeten, voorstellen en eenvoudige gesprekjes.':'Greetings, introductions and simple conversations.','Eten & drinken':'Food & drinks','Bestellen en praten over wat je lekker vindt.':'Order food and talk about what you like.',
+    '← Terug naar zinnen':'← Back to sentences','← Alle thema\'s':'← All themes','← Terug naar lijsten':'← Back to lists','← Alle lijsten':'← All lists','NIEUWE ZINNEN.':'NEW SENTENCES.','NIEUWE LIJST.':'NEW LIST.','THEMA':'THEME','LIJST':'LIST',
+    'Gebruik = tussen de Vietnamese zin en de Nederlandse betekenis.':'Use = between the Vietnamese sentence and its meaning.','Gebruik =, een tab of een puntkomma tussen het woord en de vertaling.':'Use =, a tab or a semicolon between the word and its translation.',
+    'Tekst wordt toegevoegd als je browser fotoherkenning ondersteunt.':'Text will be added if your browser supports photo recognition.','Gratis Vietnamees':'Free Vietnamese','Privacy':'Privacy',
+    'Naar home':'Go home','Hoofdnavigatie':'Main navigation','Taal':'Language','Inloggen of account openen':'Log in or open account','Donker thema':'Dark mode','Totaal aantal punten':'Total points','Luister naar uitspraak':'Listen to pronunciation',
+    'Bijv. In het restaurant':'E.g. At the restaurant','Bijv. Vietnamees — Les 1':'E.g. Vietnamese — Lesson 1','Talen omwisselen':'Swap languages','Voor deze lijst zijn nog geen contextvoorbeelden':'There are no context examples for this list yet'
+  });
+  Object.assign(translations.ru, {
+    'WOORDEN':'СЛОВА','LIJSTEN.':'СПИСКИ.','ZINNEN':'ПРЕДЛОЖЕНИЯ','IN CONTEXT.':'В КОНТЕКСТЕ.','JOUW':'ТВОЙ','GROEI.':'ПРОГРЕСС.',
+    'YOUR COLLECTION':'ТВОЯ КОЛЛЕКЦИЯ','YOUR PROGRESS / 03':'ТВОЙ ПРОГРЕСС / 03','YOUR PERSONAL LANGUAGE SYSTEM / 01':'ТВОЯ ЯЗЫКОВАЯ СИСТЕМА / 01','WORDS':'СЛОВА','THAT STICK.':'КОТОРЫЕ ЗАПОМНЯТСЯ.',
+    'HUIDIGE REEKS':'ТЕКУЩАЯ СЕРИЯ','DEZE WEEK':'НА ЭТОЙ НЕДЕЛЕ','VOLGENDE HERHALING':'СЛЕДУЮЩЕЕ ПОВТОРЕНИЕ','VANDAAG TE DOEN':'НА СЕГОДНЯ','BEHEERST':'ОСВОЕНО','OOIT GEOEFEND':'ИЗУЧАЛОСЬ',
+    'Vietnamees':'Вьетнамский','Nederlands':'Нидерландский','Vietnamees → Nederlands':'Вьетнамский → Нидерландский','VIETNAMEES → NEDERLANDS':'ВЬЕТНАМСКИЙ → НИДЕРЛАНДСКИЙ','TAAL → TAAL':'ЯЗЫК → ЯЗЫК',
+    'Vietnamese frequentie 001–100':'Частотный вьетнамский 001–100','Vietnamese frequentie 101–200':'Частотный вьетнамский 101–200','Vietnamese frequentie 201–300':'Частотный вьетнамский 201–300','Vietnamees — Start':'Вьетнамский — Начало',
+    'Elke dag':'Каждый день','Gewone zinnen voor je dagelijkse routine.':'Обычные фразы для повседневной жизни.','Kennismaken':'Знакомство','Begroeten, voorstellen en eenvoudige gesprekjes.':'Приветствия, знакомства и простые разговоры.','Eten & drinken':'Еда и напитки','Bestellen en praten over wat je lekker vindt.':'Заказывай еду и говори о своих предпочтениях.',
+    '← Terug naar zinnen':'← Назад к предложениям','← Alle thema\'s':'← Все темы','← Terug naar lijsten':'← Назад к спискам','← Alle lijsten':'← Все списки','NIEUWE ZINNEN.':'НОВЫЕ ПРЕДЛОЖЕНИЯ.','NIEUWE LIJST.':'НОВЫЙ СПИСОК.','THEMA':'ТЕМА','LIJST':'СПИСОК',
+    'Gebruik = tussen de Vietnamese zin en de Nederlandse betekenis.':'Используй = между вьетнамским предложением и его значением.','Gebruik =, een tab of een puntkomma tussen het woord en de vertaling.':'Используй =, табуляцию или точку с запятой между словом и переводом.',
+    'Tekst wordt toegevoegd als je browser fotoherkenning ondersteunt.':'Текст добавится, если браузер поддерживает распознавание фото.','Gratis Vietnamees':'Бесплатный вьетнамский','Privacy':'Конфиденциальность',
+    'Naar home':'На главную','Hoofdnavigatie':'Главная навигация','Taal':'Язык','Inloggen of account openen':'Войти или открыть аккаунт','Donker thema':'Тёмная тема','Totaal aantal punten':'Всего очков','Luister naar uitspraak':'Слушать произношение',
+    'Bijv. In het restaurant':'Например: В ресторане','Bijv. Vietnamees — Les 1':'Например: Вьетнамский — Урок 1','Talen omwisselen':'Поменять языки','Voor deze lijst zijn nog geen contextvoorbeelden':'Для этого списка пока нет примеров контекста'
+  });
+  Object.assign(translations.en, {
+    'LIJST BEWERKEN.':'EDIT LIST.','ZINNEN BEWERKEN.':'EDIT SENTENCES.','Jouw eigen zinnenlijst.':'Your own sentence list.','THEMA':'THEME','BEHEERST':'MASTERED','LEREN':'LEARNING','NIEUW':'NEW','beheerst':'mastered',
+    'Lijst verwijderd':'List deleted','Zinnenthema verwijderd':'Sentence theme deleted','Zinnen opgeslagen':'Sentences saved','Lijst opgeslagen':'List saved','Account actief; database moet nog worden ingesteld':'Account active; the database still needs setup',
+    'Controleer je e-mail en bevestig je account.':'Check your email and confirm your account.','Vul eerst je e-mailadres in.':'Enter your email address first.','Herstellink verstuurd naar je e-mail.':'Password reset link sent to your email.','De accountverbinding kon niet worden geladen.':'The account connection could not be loaded.',
+    'Niet helemaal —':'Not quite —','Niet helemaal — het antwoord is':'Not quite — the answer is','Goed!':'Correct!','Helemaal goed!':'Exactly right!','Goed — dit antwoord klopt ook.':'Correct — this answer works too.','Goed — vergelijkbaar antwoord!':'Correct — similar answer!','Nog niet.':'Not yet.',
+    'NEDERLANDS → VIETNAMEES':'DUTCH → VIETNAMESE','BOUW DE VIETNAMESE ZIN':'BUILD THE VIETNAMESE SENTENCE','MEERKEUZE':'MULTIPLE CHOICE','LEREN IN CONTEXT':'LEARN IN CONTEXT','tik om te draaien':'tap to flip','Jouw antwoord':'Your answer','Volgende vraag':'Next question','Draai flashcard om':'Flip flashcard',
+    'Tekst op de foto herkennen…':'Recognising text in the photo…','Tekst toegevoegd. Zet tussen ieder woordpaar nog een = en controleer de accenten.':'Text added. Add = between each word pair and check the accents.','Deze foto kon niet worden gelezen. Probeer een scherpere foto of typ de woorden handmatig.':'This photo could not be read. Try a clearer photo or enter the words manually.','Automatische tekstherkenning wordt op deze browser nog niet ondersteund. Typ of plak de lijst hieronder.':'Automatic text recognition is not supported in this browser yet. Type or paste the list below.'
+  });
+  Object.assign(translations.ru, {
+    'LIJST BEWERKEN.':'ИЗМЕНИТЬ СПИСОК.','ZINNEN BEWERKEN.':'ИЗМЕНИТЬ ПРЕДЛОЖЕНИЯ.','Jouw eigen zinnenlijst.':'Твой собственный список предложений.','THEMA':'ТЕМА','BEHEERST':'ОСВОЕНО','LEREN':'ИЗУЧАЕТСЯ','NIEUW':'НОВОЕ','beheerst':'освоено',
+    'Lijst verwijderd':'Список удалён','Zinnenthema verwijderd':'Тема предложений удалена','Zinnen opgeslagen':'Предложения сохранены','Lijst opgeslagen':'Список сохранён','Account actief; database moet nog worden ingesteld':'Аккаунт активен; базу данных ещё нужно настроить',
+    'Controleer je e-mail en bevestig je account.':'Проверь почту и подтверди аккаунт.','Vul eerst je e-mailadres in.':'Сначала введи электронную почту.','Herstellink verstuurd naar je e-mail.':'Ссылка для восстановления отправлена на почту.','De accountverbinding kon niet worden geladen.':'Не удалось загрузить подключение аккаунта.',
+    'Niet helemaal —':'Не совсем —','Niet helemaal — het antwoord is':'Не совсем — правильный ответ','Goed!':'Правильно!','Helemaal goed!':'Совершенно верно!','Goed — dit antwoord klopt ook.':'Правильно — этот ответ тоже подходит.','Goed — vergelijkbaar antwoord!':'Правильно — похожий ответ!','Nog niet.':'Пока нет.',
+    'NEDERLANDS → VIETNAMEES':'НИДЕРЛАНДСКИЙ → ВЬЕТНАМСКИЙ','BOUW DE VIETNAMESE ZIN':'СОБЕРИ ВЬЕТНАМСКОЕ ПРЕДЛОЖЕНИЕ','MEERKEUZE':'ВЫБОР ОТВЕТА','LEREN IN CONTEXT':'УЧИТЬ В КОНТЕКСТЕ','tik om te draaien':'нажми, чтобы перевернуть','Jouw antwoord':'Твой ответ','Volgende vraag':'Следующий вопрос','Draai flashcard om':'Перевернуть карточку',
+    'Tekst op de foto herkennen…':'Распознаём текст на фото…','Tekst toegevoegd. Zet tussen ieder woordpaar nog een = en controleer de accenten.':'Текст добавлен. Поставь = между парами слов и проверь диакритику.','Deze foto kon niet worden gelezen. Probeer een scherpere foto of typ de woorden handmatig.':'Не удалось прочитать фото. Попробуй более чёткое или введи слова вручную.','Automatische tekstherkenning wordt op deze browser nog niet ondersteund. Typ of plak de lijst hieronder.':'Этот браузер пока не поддерживает распознавание текста. Введи или вставь список ниже.'
+  });
   const originals = new WeakMap();
-  const excluded = '.word-row,.sentence-row,.quiz-word,.sentence-prompt,.context-example,.context-translation,.flash-face strong,.list-card h3,.sentence-pack h2,input,textarea,option';
+  const excluded = '.word-row,.sentence-row,.quiz-word,.sentence-prompt,.context-example,.context-translation,.flash-face strong,input,textarea,option';
   let language = localStorage.getItem('loop-language') || 'nl';
   const translateValue = value => {
     if(language==='nl') return value;
@@ -53,14 +95,19 @@
     let match=clean.match(/^(\d+) lijsten?$/);if(match)return `${match[1]} ${language==='ru'?'списков':'lists'}`;
     match=clean.match(/^(\d+) woorden$/);if(match)return `${match[1]} ${language==='ru'?'слов':'words'}`;
     match=clean.match(/^(\d+) dagen?$/);if(match)return `${match[1]} ${language==='ru'?'дней':'days'}`;
-    match=clean.match(/^(\d+)% laatste score$/);if(match)return language==='ru'?`Последний результат: ${match[1]}%`:`${match[1]}% last score`;
+    match=clean.match(/^(\d+)% laatste score$/i);if(match)return language==='ru'?`Последний результат: ${match[1]}%`:`${match[1]}% last score`;
+    match=clean.match(/^(\d+) \/ LIST$/i);if(match)return `${match[1]} / ${language==='ru'?'СПИСОК':'LIST'}`;
+    match=clean.match(/^(\d+) zinnen$/i);if(match)return `${match[1]} ${language==='ru'?'предложений':'sentences'}`;
+    match=clean.match(/^(\d+) thema(?:'s)?$/i);if(match)return `${match[1]} ${language==='ru'?'тем':'themes'}`;
+    if(language==='en')return value.replace(/laatste score/gi,'last score').replace(/woorden/gi,'words').replace(/zinnen/gi,'sentences').replace(/dagen/gi,'days').replace(/fout/gi,'wrong');
+    if(language==='ru')return value.replace(/laatste score/gi,'последний результат').replace(/woorden/gi,'слов').replace(/zinnen/gi,'предложений').replace(/dagen/gi,'дней').replace(/fout/gi,'ошибок');
     return value;
   };
   function translateNode(node){
     if(node.nodeType===Node.TEXT_NODE){const parent=node.parentElement;if(!parent||parent.closest(excluded)||!node.nodeValue.trim())return;if(!originals.has(node))originals.set(node,node.nodeValue);node.nodeValue=translateValue(originals.get(node));return;}
     if(node.nodeType!==Node.ELEMENT_NODE)return;
-    if(node.matches(excluded))return;
     ['placeholder','title','aria-label'].forEach(attr=>{if(node.hasAttribute(attr)){const key=`data-i18n-${attr}`;if(!node.hasAttribute(key))node.setAttribute(key,node.getAttribute(attr));node.setAttribute(attr,translateValue(node.getAttribute(key)));}});
+    if(node.matches(excluded))return;
     node.childNodes.forEach(translateNode);
   }
   function applyLanguage(next=language){language=next;localStorage.setItem('loop-language',language);document.documentElement.lang=language;document.querySelector('#language-select')&&(document.querySelector('#language-select').value=language);translateNode(document.body);}
