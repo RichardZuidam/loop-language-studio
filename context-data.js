@@ -1,0 +1,26 @@
+window.LOOP_CONTEXTS = {
+  'đã': {sentence:'Tôi đã ăn rồi.', translation:'Ik heb al gegeten.', explanation:'Đã geeft aan dat de handeling in het verleden al is gebeurd.', keywords:['verleden','al gebeurd','heeft plaatsgevonden']},
+  'đang': {sentence:'Tôi đang học tiếng Việt.', translation:'Ik ben Vietnamees aan het leren.', explanation:'Đang geeft aan dat de handeling op dit moment bezig is.', keywords:['nu bezig','op dit moment','aan het']},
+  'sẽ': {sentence:'Ngày mai tôi sẽ đi Hà Nội.', translation:'Morgen zal ik naar Hanoi gaan.', explanation:'Sẽ verwijst naar een handeling in de toekomst.', keywords:['toekomst','zal','later']},
+  'được': {sentence:'Tôi được phép vào.', translation:'Ik mag naar binnen.', explanation:'Được betekent hier dat iets toegestaan is.', keywords:['toegestaan','mogen','toestemming']},
+  'bị': {sentence:'Tôi bị mất điện thoại.', translation:'Mijn telefoon is helaas kwijtgeraakt.', explanation:'Bị laat zien dat iemand iets ongunstigs of ongewensts ondergaat.', keywords:['ongunstig','negatief','ondergaan','ongewenst']},
+  'mà': {sentence:'Tôi biết mà!', translation:'Ik wist het toch!', explanation:'Mà legt hier nadruk op iets dat de spreker al wist of vanzelfsprekend vindt.', keywords:['nadruk','toch','vanzelfsprekend']},
+  'thì': {sentence:'Nếu mưa thì tôi ở nhà.', translation:'Als het regent, dan blijf ik thuis.', explanation:'Thì markeert hier het gevolg: dan.', keywords:['dan','gevolg','als dan']},
+  'có thể': {sentence:'Có thể ngày mai trời mưa.', translation:'Misschien regent het morgen.', explanation:'Có thể drukt hier een mogelijkheid of onzekerheid uit.', keywords:['misschien','mogelijkheid','onzeker']},
+  'phải': {sentence:'Tôi phải đi bây giờ.', translation:'Ik moet nu gaan.', explanation:'Phải drukt hier een verplichting uit.', keywords:['moeten','verplichting','noodzaak']},
+  'để': {sentence:'Tôi học để nói tiếng Việt.', translation:'Ik leer om Vietnamees te spreken.', explanation:'Để geeft hier het doel van de handeling aan: om te.', keywords:['doel','om te','bedoeling']},
+  'lại': {sentence:'Bạn nói lại được không?', translation:'Kun je dat opnieuw zeggen?', explanation:'Lại betekent hier dat de handeling opnieuw gebeurt.', keywords:['opnieuw','weer','herhalen']},
+  'rồi': {sentence:'Tôi ăn rồi.', translation:'Ik heb al gegeten.', explanation:'Rồi laat zien dat de handeling al voltooid is.', keywords:['al','voltooid','klaar','afgelopen']},
+  'thôi': {sentence:'Đủ rồi, dừng lại thôi.', translation:'Het is genoeg, laten we stoppen.', explanation:'Thôi geeft hier aan dat men stopt of het hierbij laat.', keywords:['stoppen','ophouden','hierbij laten']},
+  'cũng': {sentence:'Tôi cũng thích cà phê.', translation:'Ik houd ook van koffie.', explanation:'Cũng voegt iemand of iets toe: ook.', keywords:['ook','eveneens','toevoegen']},
+  'còn': {sentence:'Tôi còn hai ngày.', translation:'Ik heb nog twee dagen over.', explanation:'Còn betekent hier dat iets nog overblijft.', keywords:['nog','over','overblijven']},
+  'mới': {sentence:'Tôi mới đến.', translation:'Ik ben pas aangekomen.', explanation:'Mới benadrukt hier dat iets pas kort geleden gebeurde.', keywords:['pas','kort geleden','zojuist']},
+  'từng': {sentence:'Tôi từng sống ở Việt Nam.', translation:'Ik heb ooit in Vietnam gewoond.', explanation:'Từng verwijst naar een ervaring die iemand ooit heeft gehad.', keywords:['ooit','ervaring','vroeger']},
+  'nên': {sentence:'Bạn nên nghỉ ngơi.', translation:'Je zou moeten rusten.', explanation:'Nên geeft hier een advies of aanbeveling.', keywords:['advies','zou moeten','aanbeveling']},
+  'chứ': {sentence:'Tất nhiên chứ!', translation:'Natuurlijk!', explanation:'Chứ versterkt hier een bevestiging: natuurlijk of zeker.', keywords:['natuurlijk','zeker','bevestiging']},
+  'vẫn': {sentence:'Tôi vẫn đang chờ.', translation:'Ik wacht nog steeds.', explanation:'Vẫn geeft aan dat een situatie onveranderd doorgaat.', keywords:['nog steeds','doorgaan','onveranderd']},
+  'quá': {sentence:'Món này ngon quá!', translation:'Dit gerecht is zó lekker!', explanation:'Quá versterkt hier een eigenschap: heel of erg.', keywords:['heel','erg','versterken','nadruk']},
+  'ngay': {sentence:'Tôi sẽ làm ngay.', translation:'Ik doe het meteen.', explanation:'Ngay betekent hier onmiddellijk of meteen.', keywords:['meteen','direct','onmiddellijk']},
+  'đều': {sentence:'Chúng tôi đều thích món này.', translation:'Wij vinden dit gerecht allemaal lekker.', explanation:'Đều geeft aan dat iets voor alle genoemde personen geldt.', keywords:['allemaal','iedereen','allen']}
+};
+
