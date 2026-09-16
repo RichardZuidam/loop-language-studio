@@ -194,11 +194,12 @@ function startDailyReview(){
   if(!items.length){showToast('Alles is voor vandaag herhaald');return;}
   quiz={kind:'daily',mode:'mixed',list:{id:'daily-review',title:'Dagelijkse ronde',from:'Vietnamees',to:'Nederlands',words:items,lastScore:null},items,index:0,correct:0,points:0,streak:0,answered:false};route('quiz');renderQuiz();
 }
-function startQuiz(mode){
+function startQuiz(mode,options={}){
   const list=listById(activeListId); if(!list?.words.length)return;
+  if(mode==='context'&&!options.configured){document.querySelector('#context-choice-modal').classList.remove('hidden');return;}
   const items=mode==='context'?list.words.filter(word=>window.LOOP_CONTEXTS?.[word.front]):list.words;
   if(mode==='context'&&!items.length){showToast('Voor deze lijst zijn nog geen contextvoorbeelden');return;}
-  quiz={mode,list,items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false}; route('quiz'); renderQuiz();
+  quiz={mode,list,items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false,showTranslation:options.showTranslation!==false}; route('quiz'); renderQuiz();
 }
 function renderQuiz(){
   const stage=document.querySelector('#quiz-stage'); document.querySelector('#quiz-score').textContent=quiz.points;
@@ -210,7 +211,7 @@ function renderQuiz(){
   quiz.activeMode=activeMode;
   if(activeMode==='context'){
     const context=window.LOOP_CONTEXTS[word.front];
-    stage.innerHTML=`<div class="quiz-card context-card"><p class="quiz-kicker">LEREN IN CONTEXT · ${quiz.index+1}/${quiz.items.length}</p><h2 class="context-example">${esc(context.sentence)}</h2><p class="context-translation">${esc(context.translation)}</p><form id="context-form"><label class="context-question"><span>Wat betekent of doet</span> <strong>${esc(word.front)}</strong> <span>in deze zin?</span></label><div class="answer-wrap"><input id="context-answer" autocomplete="off" placeholder="Leg het in je eigen woorden uit…"><button aria-label="Controleer">→</button></div><div id="answer-feedback" class="answer-feedback"></div></form></div>`;
+    stage.innerHTML=`<div class="quiz-card context-card"><p class="quiz-kicker">LEREN IN CONTEXT · ${quiz.index+1}/${quiz.items.length}</p><h2 class="context-example">${esc(context.sentence)}</h2>${quiz.showTranslation?`<p class="context-translation">${esc(context.translation)}</p>`:'<p class="context-translation context-hidden-hint">Vertaling verborgen</p>'}<form id="context-form"><label class="context-question"><span>Wat betekent of doet</span> <strong>${esc(word.front)}</strong> <span>in deze zin?</span></label><div class="answer-wrap"><input id="context-answer" autocomplete="off" placeholder="Leg het in je eigen woorden uit…"><button aria-label="Controleer">→</button></div><div id="answer-feedback" class="answer-feedback"></div></form></div>`;
     document.querySelector('#context-form').addEventListener('submit',checkContextAnswer);document.querySelector('#context-answer').focus();
   }else if(activeMode==='type'){
     stage.innerHTML=`<div class="quiz-card"><p class="quiz-kicker">${esc(quiz.list.from)} → ${esc(quiz.list.to)} · ${quiz.index+1}/${quiz.items.length}</p><h2 class="quiz-word">${esc(word.front)}</h2><form id="answer-form"><div class="answer-wrap"><input id="answer" autocomplete="off" autocapitalize="none" placeholder="Typ de vertaling…" aria-label="Jouw antwoord"><button aria-label="Controleer">→</button></div><div id="answer-feedback" class="answer-feedback"></div></form></div>`;
@@ -305,6 +306,8 @@ document.querySelectorAll('[data-route]').forEach(b=>b.addEventListener('click',
 document.querySelector('#hero-create').addEventListener('click',newList);document.querySelector('#daily-review').addEventListener('click',startDailyReview); document.querySelector('#library-create').addEventListener('click',newList); document.querySelector('#home-see-all').addEventListener('click',()=>route('library'));
 document.querySelector('#list-search').addEventListener('input',renderLibrary); document.querySelector('#edit-list').addEventListener('click',editList); document.querySelector('#delete-list').addEventListener('click',deleteList);
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startQuiz(b.dataset.mode))); document.querySelector('#quiz-close').addEventListener('click',()=>quiz?.kind==='sentence'?openSentencePack(quiz.pack.id):quiz?.kind==='daily'?route('home'):openList(quiz.list.id));
+document.querySelector('#context-choice-close').addEventListener('click',()=>document.querySelector('#context-choice-modal').classList.add('hidden'));
+document.querySelectorAll('[data-context-translation]').forEach(button=>button.addEventListener('click',()=>{document.querySelector('#context-choice-modal').classList.add('hidden');startQuiz('context',{configured:true,showTranslation:button.dataset.contextTranslation==='yes'});}));
 document.querySelector('#quiz-speak').addEventListener('click',speakCurrent);document.querySelector('#quiz-skip').addEventListener('click',skipCurrent);
 document.querySelector('#sentence-create').addEventListener('click',newSentencePack);document.querySelector('#edit-sentence-pack').addEventListener('click',editSentencePack);document.querySelector('#delete-sentence-pack').addEventListener('click',deleteSentencePack);
 document.querySelectorAll('[data-sentence-mode]').forEach(button=>button.addEventListener('click',()=>startSentenceQuiz(button.dataset.sentenceMode)));
