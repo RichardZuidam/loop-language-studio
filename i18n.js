@@ -56,6 +56,8 @@
     'Naar home':'Go home','Hoofdnavigatie':'Main navigation','Taal':'Language','Inloggen of account openen':'Log in or open account','Donker thema':'Dark mode','Totaal aantal punten':'Total points','Luister naar uitspraak':'Listen to pronunciation',
     'Bijv. In het restaurant':'E.g. At the restaurant','Bijv. Vietnamees — Les 1':'E.g. Vietnamese — Lesson 1','Talen omwisselen':'Swap languages','Voor deze lijst zijn nog geen contextvoorbeelden':'There are no context examples for this list yet'
   });
+  Object.assign(translations.en, {'KIES JE':'CHOOSE YOUR','UITDAGING.':'CHALLENGE.','Wil je de Nederlandse vertaling van de voorbeeldzin zien?':'Would you like to see the translation of the example sentence?','Met vertaling':'With translation','Zonder vertaling':'Without translation','Vertaling verborgen':'Translation hidden'});
+  Object.assign(translations.ru, {'KIES JE':'ВЫБЕРИ','UITDAGING.':'СЛОЖНОСТЬ.','Wil je de Nederlandse vertaling van de voorbeeldzin zien?':'Показать перевод примера?','Met vertaling':'С переводом','Zonder vertaling':'Без перевода','Vertaling verborgen':'Перевод скрыт'});
   Object.assign(translations.ru, {
     'WOORDEN':'СЛОВА','LIJSTEN.':'СПИСКИ.','ZINNEN':'ПРЕДЛОЖЕНИЯ','IN CONTEXT.':'В КОНТЕКСТЕ.','JOUW':'ТВОЙ','GROEI.':'ПРОГРЕСС.',
     'YOUR COLLECTION':'ТВОЯ КОЛЛЕКЦИЯ','YOUR PROGRESS / 03':'ТВОЙ ПРОГРЕСС / 03','YOUR PERSONAL LANGUAGE SYSTEM / 01':'ТВОЯ ЯЗЫКОВАЯ СИСТЕМА / 01','WORDS':'СЛОВА','THAT STICK.':'КОТОРЫЕ ЗАПОМНЯТСЯ.',
