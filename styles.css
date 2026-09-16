@@ -34,5 +34,6 @@ main{max-width:1440px;margin:auto}.view{display:none}.view.active{display:block}
 .dark-theme .account-button{color:#f3f1e8;border-color:#666}
 .dark-theme .ticker{color:var(--ink)}
 .language-picker select{height:40px;border:1px solid var(--ink);border-radius:99px;background:transparent;padding:0 10px;font:500 10px 'DM Mono';outline:0}.dark-theme .language-picker select{color:#f3f1e8;border-color:#666;background:#11110f}.language-picker option{color:#171714;background:#faf9f4}
+.context-practice{grid-column:1/-1}.context-example{font-size:clamp(38px,7vw,78px);line-height:1.05;letter-spacing:-.055em;margin:28px 0 12px}.context-translation{color:#aaa;font-size:17px;margin:0 0 46px}.context-question{display:block;font:500 12px/1.5 'DM Mono';text-transform:uppercase;margin-bottom:14px}.context-card .answer-feedback small{display:block;color:#bbb;font:400 13px/1.6 Inter;margin-top:12px;text-transform:none}.context-card .answer-feedback{line-height:1.6}
 @media(max-width:760px){.topbar{grid-template-columns:auto 1fr auto;padding:0 8px;gap:5px}.theme-toggle,.score-pill{display:none}.language-picker select{height:34px;padding:0 6px;font-size:8px}.account-button{height:34px;padding:0 8px;font-size:8px}.topbar nav{gap:7px}.nav-link{font-size:7px}}
 
