@@ -196,7 +196,9 @@ function startDailyReview(){
 }
 function startQuiz(mode){
   const list=listById(activeListId); if(!list?.words.length)return;
-  quiz={mode,list,items:shuffle(list.words),index:0,correct:0,points:0,streak:0,answered:false}; route('quiz'); renderQuiz();
+  const items=mode==='context'?list.words.filter(word=>window.LOOP_CONTEXTS?.[word.front]):list.words;
+  if(mode==='context'&&!items.length){showToast('Voor deze lijst zijn nog geen contextvoorbeelden');return;}
+  quiz={mode,list,items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false}; route('quiz'); renderQuiz();
 }
 function renderQuiz(){
   const stage=document.querySelector('#quiz-stage'); document.querySelector('#quiz-score').textContent=quiz.points;
@@ -206,7 +208,11 @@ function renderQuiz(){
   const word=quiz.items[quiz.index];
   const activeMode=quiz.mode==='mixed'?['type','choice','cards'][quiz.index%3]:quiz.mode;
   quiz.activeMode=activeMode;
-  if(activeMode==='type'){
+  if(activeMode==='context'){
+    const context=window.LOOP_CONTEXTS[word.front];
+    stage.innerHTML=`<div class="quiz-card context-card"><p class="quiz-kicker">LEREN IN CONTEXT · ${quiz.index+1}/${quiz.items.length}</p><h2 class="context-example">${esc(context.sentence)}</h2><p class="context-translation">${esc(context.translation)}</p><form id="context-form"><label class="context-question"><span>Wat betekent of doet</span> <strong>${esc(word.front)}</strong> <span>in deze zin?</span></label><div class="answer-wrap"><input id="context-answer" autocomplete="off" placeholder="Leg het in je eigen woorden uit…"><button aria-label="Controleer">→</button></div><div id="answer-feedback" class="answer-feedback"></div></form></div>`;
+    document.querySelector('#context-form').addEventListener('submit',checkContextAnswer);document.querySelector('#context-answer').focus();
+  }else if(activeMode==='type'){
     stage.innerHTML=`<div class="quiz-card"><p class="quiz-kicker">${esc(quiz.list.from)} → ${esc(quiz.list.to)} · ${quiz.index+1}/${quiz.items.length}</p><h2 class="quiz-word">${esc(word.front)}</h2><form id="answer-form"><div class="answer-wrap"><input id="answer" autocomplete="off" autocapitalize="none" placeholder="Typ de vertaling…" aria-label="Jouw antwoord"><button aria-label="Controleer">→</button></div><div id="answer-feedback" class="answer-feedback"></div></form></div>`;
     const form=document.querySelector('#answer-form'); form.addEventListener('submit',checkAnswer); document.querySelector('#answer').focus();
   }else if(activeMode==='choice'){
@@ -218,6 +224,15 @@ function renderQuiz(){
     const card=document.querySelector('#flashcard'); const flip=()=>card.classList.toggle('flipped'); card.addEventListener('click',flip); card.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')flip()});
     document.querySelectorAll('[data-rate]').forEach(b=>b.addEventListener('click',()=>rateCard(Number(b.dataset.rate))));
   }
+}
+function checkContextAnswer(event){
+  event.preventDefault();if(quiz.answered){nextQuestion();return;}
+  const word=quiz.items[quiz.index],context=window.LOOP_CONTEXTS[word.front],input=document.querySelector('#context-answer'),given=normalize(input.value);
+  const correct=context.keywords.some(keyword=>{const key=normalize(keyword);return given.includes(key)||key.includes(given)&&given.length>=4;});quiz.answered=true;input.disabled=true;
+  const feedback=document.querySelector('#answer-feedback');
+  if(correct){recordWordResult(word,true);quiz.correct++;quiz.streak++;quiz.points+=12;feedback.className='answer-feedback correct';feedback.innerHTML=`✓ Goede uitleg! +12 XP<small>${esc(context.explanation)}</small>`;}
+  else{recordWordResult(word,false);quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`${esc(context.explanation)}<div class="feedback-actions"><button type="button" id="accept-context">Mijn uitleg ook goedkeuren</button></div>`;document.querySelector('#accept-context').addEventListener('click',()=>{recordWordResult(word,true);quiz.correct++;quiz.points+=8;nextQuestion();});}
+  const button=event.submitter;button.textContent='→';button.setAttribute('aria-label','Volgende vraag');document.querySelector('#quiz-score').textContent=quiz.points;
 }
 function checkChoice(answer){
   if(quiz.answered)return;const word=quiz.items[quiz.index],correct=answersMatch(answer,word.back),feedback=document.querySelector('#answer-feedback');quiz.answered=true;
