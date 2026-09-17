@@ -7,13 +7,14 @@
   <meta name="description" content="Persoonlijke language learning studio voor woorden, zinnen en uitspraak." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=21" />
+  <link rel="stylesheet" href="styles.css?v=22" />
   <title>LOOP — Language Studio</title>
 </head>
 <body>
   <section id="auth-gate" class="auth-gate hidden"><div class="auth-panel"><button type="button" class="auth-close" id="auth-close">×</button><p class="eyebrow">LOOP / PERSONAL STUDIO</p><h1>JOUW TAAL.<br><em>JOUW ACCOUNT.</em></h1><p>Gebruik LOOP gratis als gast, of log in om op ieder apparaat te synchroniseren.</p><div class="auth-tabs"><button class="active" data-auth-tab="login">Inloggen</button><button data-auth-tab="signup">Account maken</button></div><form id="auth-form"><label>E-mailadres<input id="auth-email" type="email" autocomplete="email" required></label><label>Wachtwoord<input id="auth-password" type="password" autocomplete="current-password" minlength="8" required></label><button class="btn btn-accent" id="auth-submit">Inloggen →</button></form><button id="forgot-password" class="text-button">Wachtwoord vergeten?</button><p id="auth-message" class="auth-message" role="status"></p></div></section>
   <section id="account-modal" class="auth-gate hidden"><div class="auth-panel"><button type="button" class="auth-close" id="account-close">×</button><p class="eyebrow">JOUW ACCOUNT</p><h1>PROFIEL.</h1><p id="account-email"></p><button class="btn btn-accent" id="export-data">Exporteer mijn gegevens ↗</button><button class="btn btn-ghost" id="logout-button">Uitloggen</button><p class="input-hint">Je download bevat je lijsten, zinnen, XP en voortgang.</p></div></section>
   <section id="context-choice-modal" class="auth-gate hidden"><div class="auth-panel context-choice-panel"><button type="button" class="auth-close" id="context-choice-close">×</button><p class="eyebrow">LEREN IN CONTEXT</p><h1>KIES JE<br><em>UITDAGING.</em></h1><p>Wil je de Nederlandse vertaling van de voorbeeldzin zien?</p><div class="context-choice-actions"><button class="btn btn-accent" data-context-translation="yes">Met vertaling <span>→</span></button><button class="btn btn-ghost" data-context-translation="no">Zonder vertaling <span>→</span></button></div></div></section>
+  <section id="direction-choice-modal" class="auth-gate hidden"><div class="auth-panel direction-choice-panel"><button type="button" class="auth-close" id="direction-choice-close">×</button><p class="eyebrow">OEFENRICHTING</p><h1>KIES JE<br><em>RICHTING.</em></h1><p>Welke kant wil je deze ronde oefenen?</p><div class="direction-choice-actions"><button class="btn btn-accent" data-direction="forward">Vietnamees → Nederlands</button><button class="btn btn-ghost" data-direction="reverse">Nederlands → Vietnamees</button><button class="btn btn-ghost" data-direction="both">Beide richtingen</button></div></div></section>
   <div class="ticker" aria-hidden="true"><div>LEARN DAILY · BUILD YOUR LANGUAGE · LEARN DAILY · BUILD YOUR LANGUAGE · LEARN DAILY · BUILD YOUR LANGUAGE ·</div></div>
   <header class="topbar">
     <button class="brand" data-route="home" aria-label="Naar home"><span>LOOP</span><small>Language studio</small></button>
@@ -144,12 +145,12 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <footer class="site-footer"><span>© LOOP LANGUAGE STUDIO</span><nav><a href="learn-vietnamese.html">Gratis Vietnamees</a><a href="privacy.html">Privacy</a></nav></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=21"></script>
-  <script src="frequency-data.js?v=21"></script>
-  <script src="sentence-data.js?v=21"></script>
-  <script src="context-data.js?v=21"></script>
-  <script src="app.js?v=21"></script>
-  <script src="i18n.js?v=21"></script>
+  <script src="supabase-config.js?v=22"></script>
+  <script src="frequency-data.js?v=22"></script>
+  <script src="sentence-data.js?v=22"></script>
+  <script src="context-data.js?v=22"></script>
+  <script src="app.js?v=22"></script>
+  <script src="i18n.js?v=22"></script>
 </body>
 </html>
 
