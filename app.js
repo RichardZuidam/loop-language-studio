@@ -25,7 +25,7 @@ function freshAccountData(){
   return {score:0,bestStreak:0,todayXp:0,xpDate:new Date().toISOString().slice(0,10),dailyGoal:50,activity:{},sentencePacks:[],lists:[structuredClone(seed.lists[0])]};
 }
 let data = loadData();
-let activeListId = null, editingId = null, quiz = null, activeSentencePackId = null, editingSentencePackId = null, cloudUser = null, cloudSaveTimer = null;
+let activeListId = null, editingId = null, quiz = null, activeSentencePackId = null, editingSentencePackId = null, cloudUser = null, cloudSaveTimer = null, pendingPracticeMode = null;
 
 function loadData(){
   try {
@@ -180,7 +180,7 @@ function deleteSentencePack(){
 }
 function startSentenceQuiz(mode){
   const pack=sentencePackById(activeSentencePackId);if(!pack?.sentences.length)return;
-  quiz={kind:'sentence',mode,pack,items:shuffle(pack.sentences),index:0,correct:0,points:0,streak:0,answered:false,selected:[]};route('quiz');renderQuiz();
+  quiz={kind:'sentence',mode,pack,items:shuffle(pack.sentences),index:0,correct:0,points:0,streak:0,answered:false,selected:[],mistakes:[]};route('quiz');renderQuiz();
 }
 function shuffle(items){ const out=[...items]; for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]];} return out; }
 const REVIEW_INTERVALS=[0,1,3,7,14,30,60];
@@ -192,15 +192,18 @@ function recordWordResult(word,correct){
 function startDailyReview(){
   const words=data.lists.flatMap(list=>list.words),today=new Date().toISOString().slice(0,10),due=words.filter(word=>word.reviewed&&(!word.due||word.due<=today)),fresh=words.filter(word=>!word.reviewed).slice(0,10),items=shuffle([...due,...fresh]).slice(0,20);
   if(!items.length){showToast('Alles is voor vandaag herhaald');return;}
-  quiz={kind:'daily',mode:'mixed',list:{id:'daily-review',title:'Dagelijkse ronde',from:'Vietnamees',to:'Nederlands',words:items,lastScore:null},items,index:0,correct:0,points:0,streak:0,answered:false};route('quiz');renderQuiz();
+  quiz={kind:'daily',mode:'mixed',list:{id:'daily-review',title:'Dagelijkse ronde',from:'Vietnamees',to:'Nederlands',words:items,lastScore:null},items,index:0,correct:0,points:0,streak:0,answered:false,direction:'both',mistakes:[]};route('quiz');renderQuiz();
 }
 function startQuiz(mode,options={}){
   const list=listById(activeListId); if(!list?.words.length)return;
   if(mode==='context'&&!options.configured){document.querySelector('#context-choice-modal').classList.remove('hidden');return;}
+  if(mode!=='context'&&!options.configured){pendingPracticeMode=mode;document.querySelector('#direction-choice-modal').classList.remove('hidden');return;}
   const items=mode==='context'?list.words.filter(word=>window.LOOP_CONTEXTS?.[word.front]):list.words;
   if(mode==='context'&&!items.length){showToast('Voor deze lijst zijn nog geen contextvoorbeelden');return;}
-  quiz={mode,list,items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false,showTranslation:options.showTranslation!==false}; route('quiz'); renderQuiz();
+  quiz={mode,list,items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false,showTranslation:options.showTranslation!==false,direction:options.direction||'forward',mistakes:[]}; route('quiz'); renderQuiz();
 }
+function addMistake(item){if(!quiz.mistakes.includes(item))quiz.mistakes.push(item);}
+function questionSides(word){const reverse=quiz.direction==='reverse'||(quiz.direction==='both'&&quiz.index%2===1);return reverse?{prompt:word.back,answer:word.front,from:quiz.list.to,to:quiz.list.from}:{prompt:word.front,answer:word.back,from:quiz.list.from,to:quiz.list.to};}
 function renderQuiz(){
   const stage=document.querySelector('#quiz-stage'); document.querySelector('#quiz-score').textContent=quiz.points;
   document.querySelector('#quiz-progress').style.width=`${quiz.index/quiz.items.length*100}%`;
@@ -210,36 +213,54 @@ function renderQuiz(){
   const activeMode=quiz.mode==='mixed'?['type','choice','cards'][quiz.index%3]:quiz.mode;
   quiz.activeMode=activeMode;
   if(activeMode==='context'){
-    const context=window.LOOP_CONTEXTS[word.front];
-    stage.innerHTML=`<div class="quiz-card context-card"><p class="quiz-kicker">LEREN IN CONTEXT · ${quiz.index+1}/${quiz.items.length}</p><h2 class="context-example">${esc(context.sentence)}</h2>${quiz.showTranslation?`<p class="context-translation">${esc(context.translation)}</p>`:'<p class="context-translation context-hidden-hint">Vertaling verborgen</p>'}<form id="context-form"><label class="context-question"><span>Wat betekent of doet</span> <strong>${esc(word.front)}</strong> <span>in deze zin?</span></label><div class="answer-wrap"><input id="context-answer" autocomplete="off" placeholder="Leg het in je eigen woorden uit…"><button aria-label="Controleer">→</button></div><div id="answer-feedback" class="answer-feedback"></div></form></div>`;
-    document.querySelector('#context-form').addEventListener('submit',checkContextAnswer);document.querySelector('#context-answer').focus();
+    const baseContext=window.LOOP_CONTEXTS[word.front],examples=[{sentence:baseContext.sentence,translation:baseContext.translation},...(baseContext.examples||[])],example=examples[((word.correctCount||0)+(word.wrongCount||0))%examples.length],context={...baseContext,...example},contextMode=['explain','choice','fill'][quiz.index%3];quiz.contextMode=contextMode;quiz.activeContext=context;
+    const translation=quiz.showTranslation?`<p class="context-translation">${esc(context.translation)}</p>`:'<p class="context-translation context-hidden-hint">Vertaling verborgen</p>';
+    if(contextMode==='choice'){
+      const other=shuffle(Object.entries(window.LOOP_CONTEXTS).filter(([key])=>key!==word.front)).slice(0,3).map(([,item])=>item.explanation),choices=shuffle([context.explanation,...other]);
+      stage.innerHTML=`<div class="quiz-card context-card"><p class="quiz-kicker">CONTEXT KIEZEN · ${quiz.index+1}/${quiz.items.length}</p><h2 class="context-example">${esc(context.sentence)}</h2>${translation}<p class="context-question">Welke uitleg past bij <strong>${esc(word.front)}</strong>?</p><div class="choice-grid">${choices.map(choice=>`<button data-context-choice="${esc(choice)}">${esc(choice)}</button>`).join('')}</div><div id="answer-feedback" class="answer-feedback"></div></div>`;
+      document.querySelectorAll('[data-context-choice]').forEach(button=>button.addEventListener('click',()=>checkContextChoice(button.dataset.contextChoice)));
+    }else if(contextMode==='fill'){
+      const blank=context.sentence.replace(new RegExp(word.front.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),'_____');
+      stage.innerHTML=`<div class="quiz-card context-card"><p class="quiz-kicker">VUL HET WOORD IN · ${quiz.index+1}/${quiz.items.length}</p><h2 class="context-example">${esc(blank)}</h2>${translation}<form id="context-form"><label class="context-question">Welk woord ontbreekt?</label><div class="answer-wrap"><input id="context-answer" autocomplete="off" placeholder="Typ het Vietnamese woord…"><button aria-label="Controleer">→</button></div><div id="answer-feedback" class="answer-feedback"></div></form></div>`;
+      document.querySelector('#context-form').addEventListener('submit',checkContextAnswer);document.querySelector('#context-answer').focus();
+    }else{
+      stage.innerHTML=`<div class="quiz-card context-card"><p class="quiz-kicker">LEREN IN CONTEXT · ${quiz.index+1}/${quiz.items.length}</p><h2 class="context-example">${esc(context.sentence)}</h2>${translation}<form id="context-form"><label class="context-question"><span>Wat betekent of doet</span> <strong>${esc(word.front)}</strong> <span>in deze zin?</span></label><div class="answer-wrap"><input id="context-answer" autocomplete="off" placeholder="Leg het in je eigen woorden uit…"><button aria-label="Controleer">→</button></div><div id="answer-feedback" class="answer-feedback"></div></form></div>`;
+      document.querySelector('#context-form').addEventListener('submit',checkContextAnswer);document.querySelector('#context-answer').focus();
+    }
   }else if(activeMode==='type'){
-    stage.innerHTML=`<div class="quiz-card"><p class="quiz-kicker">${esc(quiz.list.from)} → ${esc(quiz.list.to)} · ${quiz.index+1}/${quiz.items.length}</p><h2 class="quiz-word">${esc(word.front)}</h2><form id="answer-form"><div class="answer-wrap"><input id="answer" autocomplete="off" autocapitalize="none" placeholder="Typ de vertaling…" aria-label="Jouw antwoord"><button aria-label="Controleer">→</button></div><div id="answer-feedback" class="answer-feedback"></div></form></div>`;
+    const sides=questionSides(word);stage.innerHTML=`<div class="quiz-card"><p class="quiz-kicker">${esc(sides.from)} → ${esc(sides.to)} · ${quiz.index+1}/${quiz.items.length}</p><h2 class="quiz-word">${esc(sides.prompt)}</h2><form id="answer-form"><div class="answer-wrap"><input id="answer" autocomplete="off" autocapitalize="none" placeholder="Typ de vertaling…" aria-label="Jouw antwoord"><button aria-label="Controleer">→</button></div><div id="answer-feedback" class="answer-feedback"></div></form></div>`;
     const form=document.querySelector('#answer-form'); form.addEventListener('submit',checkAnswer); document.querySelector('#answer').focus();
   }else if(activeMode==='choice'){
-    const distractors=shuffle(quiz.list.words.filter(item=>item!==word)).slice(0,3).map(item=>item.back),choices=shuffle([word.back,...distractors]);
-    stage.innerHTML=`<div class="quiz-card"><p class="quiz-kicker">MEERKEUZE · ${quiz.index+1}/${quiz.items.length}</p><h2 class="quiz-word">${esc(word.front)}</h2><div class="choice-grid">${choices.map(choice=>`<button data-choice="${esc(choice)}">${esc(choice)}</button>`).join('')}</div><div id="answer-feedback" class="answer-feedback"></div></div>`;
+    const sides=questionSides(word),reverse=sides.answer===word.front,distractors=shuffle(quiz.list.words.filter(item=>item!==word)).slice(0,3).map(item=>reverse?item.front:item.back),choices=shuffle([sides.answer,...distractors]);
+    stage.innerHTML=`<div class="quiz-card"><p class="quiz-kicker">MEERKEUZE · ${esc(sides.from)} → ${esc(sides.to)} · ${quiz.index+1}/${quiz.items.length}</p><h2 class="quiz-word">${esc(sides.prompt)}</h2><div class="choice-grid">${choices.map(choice=>`<button data-choice="${esc(choice)}">${esc(choice)}</button>`).join('')}</div><div id="answer-feedback" class="answer-feedback"></div></div>`;
     document.querySelectorAll('[data-choice]').forEach(button=>button.addEventListener('click',()=>checkChoice(button.dataset.choice)));
   }else{
-    stage.innerHTML=`<div><div id="flashcard" class="flashcard" role="button" tabindex="0" aria-label="Draai flashcard om"><div class="flash-inner"><div class="flash-face"><small>${esc(quiz.list.from)} · tik om te draaien</small><strong>${esc(word.front)}</strong></div><div class="flash-face back"><small>${esc(quiz.list.to)}</small><strong>${esc(word.back)}</strong></div></div></div><div class="card-controls"><button data-rate="0">Nog leren</button><button data-rate="1">Ik wist het</button></div></div>`;
+    const sides=questionSides(word);stage.innerHTML=`<div><div id="flashcard" class="flashcard" role="button" tabindex="0" aria-label="Draai flashcard om"><div class="flash-inner"><div class="flash-face"><small>${esc(sides.from)} · tik om te draaien</small><strong>${esc(sides.prompt)}</strong></div><div class="flash-face back"><small>${esc(sides.to)}</small><strong>${esc(sides.answer)}</strong></div></div></div><div class="card-controls"><button data-rate="0">Nog leren</button><button data-rate="1">Ik wist het</button></div></div>`;
     const card=document.querySelector('#flashcard'); const flip=()=>card.classList.toggle('flipped'); card.addEventListener('click',flip); card.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter')flip()});
     document.querySelectorAll('[data-rate]').forEach(b=>b.addEventListener('click',()=>rateCard(Number(b.dataset.rate))));
   }
 }
 function checkContextAnswer(event){
   event.preventDefault();if(quiz.answered){nextQuestion();return;}
-  const word=quiz.items[quiz.index],context=window.LOOP_CONTEXTS[word.front],input=document.querySelector('#context-answer'),given=normalize(input.value);
-  const correct=context.keywords.some(keyword=>{const key=normalize(keyword);return given.includes(key)||key.includes(given)&&given.length>=4;});quiz.answered=true;input.disabled=true;
+  const word=quiz.items[quiz.index],context=quiz.activeContext||window.LOOP_CONTEXTS[word.front],input=document.querySelector('#context-answer'),given=normalize(input.value);
+  const correct=quiz.contextMode==='fill'?answersMatch(input.value,word.front):context.keywords.some(keyword=>{const key=normalize(keyword);return given.includes(key)||key.includes(given)&&given.length>=4;});quiz.answered=true;input.disabled=true;
   const feedback=document.querySelector('#answer-feedback');
   if(correct){recordWordResult(word,true);quiz.correct++;quiz.streak++;quiz.points+=12;feedback.className='answer-feedback correct';feedback.innerHTML=`✓ Goede uitleg! +12 XP<small>${esc(context.explanation)}</small>`;}
-  else{recordWordResult(word,false);quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`${esc(context.explanation)}<div class="feedback-actions"><button type="button" id="accept-context">Mijn uitleg ook goedkeuren</button></div>`;document.querySelector('#accept-context').addEventListener('click',()=>{recordWordResult(word,true);quiz.correct++;quiz.points+=8;nextQuestion();});}
+  else{recordWordResult(word,false);addMistake(word);quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`${quiz.contextMode==='fill'?`Het ontbrekende woord is <strong>${esc(word.front)}</strong>. `:''}${esc(context.explanation)}<div class="feedback-actions"><button type="button" id="accept-context">Mijn uitleg ook goedkeuren</button></div>`;document.querySelector('#accept-context').addEventListener('click',()=>{recordWordResult(word,true);quiz.correct++;quiz.points+=8;nextQuestion();});}
   const button=event.submitter;button.textContent='→';button.setAttribute('aria-label','Volgende vraag');document.querySelector('#quiz-score').textContent=quiz.points;
 }
+function checkContextChoice(answer){
+  if(quiz.answered)return;const word=quiz.items[quiz.index],context=quiz.activeContext||window.LOOP_CONTEXTS[word.front],correct=answer===context.explanation,feedback=document.querySelector('#answer-feedback');quiz.answered=true;
+  document.querySelectorAll('[data-context-choice]').forEach(button=>{button.disabled=true;if(button.dataset.contextChoice===context.explanation)button.classList.add('is-correct');});
+  if(correct){recordWordResult(word,true);quiz.correct++;quiz.points+=10;quiz.streak++;feedback.className='answer-feedback correct';feedback.innerHTML='✓ Goed! +10 XP <button class="feedback-next" id="context-next">Volgende →</button>';}
+  else{recordWordResult(word,false);addMistake(word);quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`Niet helemaal — ${esc(context.explanation)} <button class="feedback-next" id="context-next">Volgende →</button>`;}
+  document.querySelector('#context-next').addEventListener('click',nextQuestion);document.querySelector('#quiz-score').textContent=quiz.points;
+}
 function checkChoice(answer){
-  if(quiz.answered)return;const word=quiz.items[quiz.index],correct=answersMatch(answer,word.back),feedback=document.querySelector('#answer-feedback');quiz.answered=true;
-  document.querySelectorAll('[data-choice]').forEach(button=>{button.disabled=true;if(answersMatch(button.dataset.choice,word.back))button.classList.add('is-correct');});
+  if(quiz.answered)return;const word=quiz.items[quiz.index],sides=questionSides(word),correct=answersMatch(answer,sides.answer),feedback=document.querySelector('#answer-feedback');quiz.answered=true;
+  document.querySelectorAll('[data-choice]').forEach(button=>{button.disabled=true;if(answersMatch(button.dataset.choice,sides.answer))button.classList.add('is-correct');});
   if(correct){recordWordResult(word,true);quiz.correct++;quiz.streak++;quiz.points+=8;feedback.className='answer-feedback correct';feedback.innerHTML='✓ Goed! +8 XP <button class="feedback-next" id="choice-next">Volgende →</button>';}
-  else{recordWordResult(word,false);quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`Niet helemaal — <strong>${esc(word.back)}</strong><div class="feedback-actions"><button id="accept-word">Toch goed rekenen</button><button id="choice-next">Volgende →</button></div>`;document.querySelector('#accept-word').addEventListener('click',acceptCurrentWord);}
+  else{recordWordResult(word,false);addMistake(word);quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`Niet helemaal — <strong>${esc(sides.answer)}</strong><div class="feedback-actions"><button id="accept-word">Toch goed rekenen</button><button id="choice-next">Volgende →</button></div>`;document.querySelector('#accept-word').addEventListener('click',acceptCurrentWord);}
   document.querySelector('#choice-next').addEventListener('click',nextQuestion);document.querySelector('#quiz-score').textContent=quiz.points;
 }
 function acceptCurrentWord(){if(!quiz.answered)return;recordWordResult(quiz.items[quiz.index],true);quiz.correct++;quiz.points+=6;nextQuestion();}
@@ -247,7 +268,7 @@ function speakCurrent(){
   if(!('speechSynthesis' in window)||!quiz)return;const text=quiz.kind==='sentence'?quiz.items[quiz.index]?.vi:quiz.items[quiz.index]?.front;if(!text)return;
   speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang='vi-VN';utterance.rate=.82;speechSynthesis.speak(utterance);
 }
-function skipCurrent(){if(!quiz||quiz.index>=quiz.items.length)return;quiz.streak=0;nextQuestion();}
+function skipCurrent(){if(!quiz||quiz.index>=quiz.items.length)return;addMistake(quiz.items[quiz.index]);quiz.streak=0;nextQuestion();}
 function renderSentenceQuestion(){
   const stage=document.querySelector('#quiz-stage'), sentence=quiz.items[quiz.index];
   if(quiz.mode==='translate'){
@@ -270,7 +291,7 @@ function awardSentence(sentence,points){quiz.correct++;quiz.streak++;quiz.points
 function sentenceFeedback(correct,exact=false){
   const sentence=quiz.items[quiz.index],feedback=document.querySelector('#answer-feedback');quiz.answered=true;
   if(correct){const gained=quiz.mode==='translate'?15:10;awardSentence(sentence,gained);feedback.className='answer-feedback correct';feedback.innerHTML=`✓ ${exact?'Helemaal goed!':'Goed — dit antwoord klopt ook.'} +${gained} XP <button class="feedback-next" id="sentence-next">Volgende →</button>`;}
-  else{quiz.streak=0;sentence.mastery=Math.max(0,(sentence.mastery||0)-1);feedback.className='answer-feedback wrong';feedback.innerHTML=`Nog niet. <strong>${esc(sentence.vi)}</strong>${sentence.note?`<small>${esc(sentence.note)}</small>`:''}<div class="feedback-actions"><button id="accept-sentence">Mijn antwoord goedkeuren</button><button id="sentence-next">Volgende →</button></div>`;document.querySelector('#accept-sentence').addEventListener('click',()=>{awardSentence(sentence,8);nextQuestion();});}
+  else{addMistake(sentence);quiz.streak=0;sentence.mastery=Math.max(0,(sentence.mastery||0)-1);feedback.className='answer-feedback wrong';feedback.innerHTML=`Nog niet. <strong>${esc(sentence.vi)}</strong>${sentence.note?`<small>${esc(sentence.note)}</small>`:''}<div class="feedback-actions"><button id="accept-sentence">Mijn antwoord goedkeuren</button><button id="sentence-next">Volgende →</button></div>`;document.querySelector('#accept-sentence').addEventListener('click',()=>{awardSentence(sentence,8);nextQuestion();});}
   document.querySelector('#sentence-next').addEventListener('click',nextQuestion);
 }
 function checkBuiltSentence(){if(quiz.answered){nextQuestion();return;}const sentence=quiz.items[quiz.index],given=quiz.selected.map(token=>token.word).join(' ');sentenceFeedback(normalize(given)===normalize(sentence.vi),true);}
@@ -280,26 +301,32 @@ function checkSentenceTranslation(event){
 }
 function checkAnswer(event){
   event.preventDefault(); if(quiz.answered){nextQuestion();return;}
-  const input=document.querySelector('#answer'), feedback=document.querySelector('#answer-feedback'); const word=quiz.items[quiz.index]; const exact=normalize(input.value)===normalize(word.back); const correct=answersMatch(input.value,word.back);
+  const input=document.querySelector('#answer'), feedback=document.querySelector('#answer-feedback'); const word=quiz.items[quiz.index],sides=questionSides(word); const exact=normalize(input.value)===normalize(sides.answer); const correct=answersMatch(input.value,sides.answer);
   quiz.answered=true; input.disabled=true;
   if(correct){ recordWordResult(word,true);quiz.correct++; quiz.streak++; const gained=10+Math.min(quiz.streak-1,5)*2; quiz.points+=gained; feedback.className='answer-feedback correct'; feedback.innerHTML=exact?`✓ Goed! +${gained} XP`:`✓ Goed — vergelijkbaar antwoord! +${gained} XP`; }
-  else { recordWordResult(word,false);quiz.streak=0; feedback.className='answer-feedback wrong'; feedback.innerHTML=`Niet helemaal — het antwoord is <strong>${esc(word.back)}</strong><div class="feedback-actions"><button type="button" id="accept-word">Toch goed rekenen</button></div>`; document.querySelector('#accept-word').addEventListener('click',acceptCurrentWord); }
+  else { recordWordResult(word,false);addMistake(word);quiz.streak=0; feedback.className='answer-feedback wrong'; feedback.innerHTML=`Niet helemaal — het antwoord is <strong>${esc(sides.answer)}</strong><div class="feedback-actions"><button type="button" id="accept-word">Toch goed rekenen</button></div>`; document.querySelector('#accept-word').addEventListener('click',acceptCurrentWord); }
   const button=event.submitter; button.textContent='→'; button.setAttribute('aria-label','Volgende vraag'); button.focus(); document.querySelector('#quiz-score').textContent=quiz.points;
 }
 function nextQuestion(){ quiz.index++; quiz.answered=false; renderQuiz(); }
-function rateCard(knew){recordWordResult(quiz.items[quiz.index],Boolean(knew));if(knew){quiz.correct++;quiz.points+=8;quiz.streak++;}else quiz.streak=0; quiz.index++; renderQuiz(); }
+function rateCard(knew){const word=quiz.items[quiz.index];recordWordResult(word,Boolean(knew));if(knew){quiz.correct++;quiz.points+=8;quiz.streak++;}else{addMistake(word);quiz.streak=0;} quiz.index++; renderQuiz(); }
+function retryMistakes(){
+  const previous=quiz,items=shuffle([...previous.mistakes]);
+  quiz={kind:previous.kind,mode:previous.mode,list:previous.list,pack:previous.pack,items,index:0,correct:0,points:0,streak:0,answered:false,selected:[],direction:previous.direction,showTranslation:previous.showTranslation,mistakes:[],isRetry:true};renderQuiz();
+}
+function retryButton(){return quiz.mistakes.length?`<button class="btn btn-ghost retry-mistakes" id="retry-mistakes">Oefen ${quiz.mistakes.length} ${quiz.mistakes.length===1?'fout':'fouten'} opnieuw</button>`:'';}
+function bindRetryButton(){document.querySelector('#retry-mistakes')?.addEventListener('click',retryMistakes);}
 function finishQuiz(){
   const percent=Math.round(quiz.correct/quiz.items.length*100); const grade=(percent/10).toFixed(1).replace('.',',');
   if(quiz.kind==='sentence'){
     quiz.pack.lastScore=percent;data.score+=quiz.points;data.todayXp+=quiz.points;data.activity[dayKey()]=(data.activity[dayKey()]||0)+quiz.points;data.bestStreak=Math.max(data.bestStreak,quiz.streak,currentStreak());saveData();
     document.querySelector('#quiz-progress').style.width='100%';
-    document.querySelector('#quiz-stage').innerHTML=`<div class="result-card"><p class="quiz-kicker">SENTENCE SESSION COMPLETE</p><div class="result-grade">${grade}</div><h2>${percent>=80?'Sterk gebouwd.':percent>=55?'Goed op weg.':'Nog één ronde.'}</h2><p>${quiz.correct} van de ${quiz.items.length} goed · +${quiz.points} XP</p><div class="result-actions"><button class="btn btn-ghost" id="result-back">Naar thema</button><button class="btn btn-accent" id="result-again">Nog een ronde ↻</button></div></div>`;
-    document.querySelector('#result-back').addEventListener('click',()=>openSentencePack(quiz.pack.id));document.querySelector('#result-again').addEventListener('click',()=>startSentenceQuiz(quiz.mode));return;
+    document.querySelector('#quiz-stage').innerHTML=`<div class="result-card"><p class="quiz-kicker">SENTENCE SESSION COMPLETE</p><div class="result-grade">${grade}</div><h2>${percent>=80?'Sterk gebouwd.':percent>=55?'Goed op weg.':'Nog één ronde.'}</h2><p>${quiz.correct} van de ${quiz.items.length} goed · +${quiz.points} XP</p><div class="result-actions">${retryButton()}<button class="btn btn-ghost" id="result-back">Naar thema</button><button class="btn btn-accent" id="result-again">Nog een ronde ↻</button></div></div>`;
+    bindRetryButton();document.querySelector('#result-back').addEventListener('click',()=>openSentencePack(quiz.pack.id));document.querySelector('#result-again').addEventListener('click',()=>startSentenceQuiz(quiz.mode));return;
   }
   quiz.list.lastScore=percent; data.score+=quiz.points; data.todayXp+=quiz.points;data.activity[dayKey()]=(data.activity[dayKey()]||0)+quiz.points; data.bestStreak=Math.max(data.bestStreak,quiz.streak,currentStreak()); saveData();
   document.querySelector('#quiz-progress').style.width='100%';
-  document.querySelector('#quiz-stage').innerHTML=`<div class="result-card"><p class="quiz-kicker">SESSION COMPLETE</p><div class="result-grade">${grade}</div><h2>${percent>=80?'Sterk werk.':percent>=55?'Goed op weg.':'Nog één ronde.'}</h2><p>${quiz.correct} van de ${quiz.items.length} goed · +${quiz.points} XP</p><div class="result-actions"><button class="btn btn-ghost" id="result-back">Naar lijst</button><button class="btn btn-accent" id="result-again">Nog een ronde ↻</button></div></div>`;
-  document.querySelector('#result-back').addEventListener('click',()=>quiz.kind==='daily'?route('home'):openList(quiz.list.id)); document.querySelector('#result-again').addEventListener('click',()=>quiz.kind==='daily'?startDailyReview():startQuiz(quiz.mode));
+  document.querySelector('#quiz-stage').innerHTML=`<div class="result-card"><p class="quiz-kicker">SESSION COMPLETE</p><div class="result-grade">${grade}</div><h2>${percent>=80?'Sterk werk.':percent>=55?'Goed op weg.':'Nog één ronde.'}</h2><p>${quiz.correct} van de ${quiz.items.length} goed · +${quiz.points} XP</p><div class="result-actions">${retryButton()}<button class="btn btn-ghost" id="result-back">Naar lijst</button><button class="btn btn-accent" id="result-again">Nog een ronde ↻</button></div></div>`;
+  bindRetryButton();document.querySelector('#result-back').addEventListener('click',()=>quiz.kind==='daily'?route('home'):openList(quiz.list.id)); document.querySelector('#result-again').addEventListener('click',()=>quiz.kind==='daily'?startDailyReview():startQuiz(quiz.mode));
 }
 
 document.querySelectorAll('[data-route]').forEach(b=>b.addEventListener('click',()=>route(b.dataset.route)));
@@ -308,6 +335,8 @@ document.querySelector('#list-search').addEventListener('input',renderLibrary); 
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startQuiz(b.dataset.mode))); document.querySelector('#quiz-close').addEventListener('click',()=>quiz?.kind==='sentence'?openSentencePack(quiz.pack.id):quiz?.kind==='daily'?route('home'):openList(quiz.list.id));
 document.querySelector('#context-choice-close').addEventListener('click',()=>document.querySelector('#context-choice-modal').classList.add('hidden'));
 document.querySelectorAll('[data-context-translation]').forEach(button=>button.addEventListener('click',()=>{document.querySelector('#context-choice-modal').classList.add('hidden');startQuiz('context',{configured:true,showTranslation:button.dataset.contextTranslation==='yes'});}));
+document.querySelector('#direction-choice-close').addEventListener('click',()=>document.querySelector('#direction-choice-modal').classList.add('hidden'));
+document.querySelectorAll('[data-direction]').forEach(button=>button.addEventListener('click',()=>{document.querySelector('#direction-choice-modal').classList.add('hidden');startQuiz(pendingPracticeMode,{configured:true,direction:button.dataset.direction});}));
 document.querySelector('#quiz-speak').addEventListener('click',speakCurrent);document.querySelector('#quiz-skip').addEventListener('click',skipCurrent);
 document.querySelector('#sentence-create').addEventListener('click',newSentencePack);document.querySelector('#edit-sentence-pack').addEventListener('click',editSentencePack);document.querySelector('#delete-sentence-pack').addEventListener('click',deleteSentencePack);
 document.querySelectorAll('[data-sentence-mode]').forEach(button=>button.addEventListener('click',()=>startSentenceQuiz(button.dataset.sentenceMode)));
