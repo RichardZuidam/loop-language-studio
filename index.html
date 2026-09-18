@@ -7,7 +7,7 @@
   <meta name="description" content="Persoonlijke language learning studio voor woorden, zinnen en uitspraak." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=22" />
+  <link rel="stylesheet" href="styles.css?v=23" />
   <title>LOOP — Language Studio</title>
 </head>
 <body>
@@ -74,13 +74,15 @@
     </section>
 
     <section id="statistics-view" class="view stats-view">
-      <div class="page-head"><div><p class="eyebrow">YOUR PROGRESS / 03</p><h1>JOUW<br><em>GROEI.</em></h1></div></div>
-      <section class="stats-summary">
-        <article><span>HUIDIGE REEKS</span><strong id="current-streak">0 dagen</strong></article>
-        <article><span>DEZE WEEK</span><strong id="week-xp">0 XP</strong></article>
-        <article><span>VOLGENDE HERHALING</span><strong id="next-review">—</strong></article>
-      </section>
-      <div class="stats-grid">
+      <div class="page-head"><div><p class="eyebrow">ROAD TO FLUENCY / 03</p><h1>JOUW<br><em>ROUTE.</em></h1></div></div>
+      <section class="fluency-hero"><div><p class="eyebrow">HUIDIG NIVEAU</p><h2 id="fluency-level">Starter</h2><p id="fluency-next">Begin je eerste ronde.</p></div><div class="fluency-progress"><span id="fluency-percent">0%</span><i><b id="fluency-bar"></b></i></div></section>
+      <section class="stats-summary stats-summary-four"><article><span>HUIDIGE REEKS</span><strong id="current-streak">0 dagen</strong></article><article><span>DEZE WEEK</span><strong id="week-xp">0 XP</strong></article><article><span>LEERTIJD</span><strong id="study-time">0 min</strong></article><article><span>VOLGENDE HERHALING</span><strong id="next-review">—</strong></article></section>
+      <div class="fluency-layout">
+        <section class="stats-panel stats-wide"><div class="section-heading"><div><p class="eyebrow">THE ROAD AHEAD</p><h2>Road to Fluency</h2></div></div><div id="fluency-road" class="fluency-road"></div></section>
+        <section class="stats-panel"><div class="section-heading"><div><p class="eyebrow">VOCABULARY</p><h2>Woorden</h2></div></div><div id="word-metrics" class="metric-grid"></div></section>
+        <section class="stats-panel"><div class="section-heading"><div><p class="eyebrow">SENTENCES</p><h2>Zinnen</h2></div></div><div id="sentence-metrics" class="metric-grid"></div></section>
+        <section class="stats-panel"><div class="section-heading"><div><p class="eyebrow">SKILLS</p><h2>Vaardigheden</h2></div></div><div id="skill-bars" class="skill-bars"></div></section>
+        <section class="stats-panel"><div class="section-heading"><div><p class="eyebrow">YOUR NEXT MOVE</p><h2>Persoonlijk advies</h2></div></div><div id="learning-advice" class="learning-advice"></div></section>
         <section class="stats-panel"><div class="section-heading"><div><p class="eyebrow">LAST 7 DAYS</p><h2>Weekactiviteit</h2></div></div><div id="activity-chart" class="activity-chart"></div></section>
         <section class="stats-panel"><div class="section-heading"><div><p class="eyebrow">NEEDS ATTENTION</p><h2>Moeilijke woorden</h2></div></div><div id="hardest-words" class="ranking-list"></div></section>
         <section class="stats-panel stats-wide"><div class="section-heading"><div><p class="eyebrow">PER LIST</p><h2>Voortgang per lijst</h2></div></div><div id="list-progress" class="progress-list"></div></section>
@@ -145,12 +147,12 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <footer class="site-footer"><span>© LOOP LANGUAGE STUDIO</span><nav><a href="learn-vietnamese.html">Gratis Vietnamees</a><a href="privacy.html">Privacy</a></nav></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=22"></script>
-  <script src="frequency-data.js?v=22"></script>
-  <script src="sentence-data.js?v=22"></script>
-  <script src="context-data.js?v=22"></script>
-  <script src="app.js?v=22"></script>
-  <script src="i18n.js?v=22"></script>
+  <script src="supabase-config.js?v=23"></script>
+  <script src="frequency-data.js?v=23"></script>
+  <script src="sentence-data.js?v=23"></script>
+  <script src="context-data.js?v=23"></script>
+  <script src="app.js?v=23"></script>
+  <script src="i18n.js?v=23"></script>
 </body>
 </html>
 
