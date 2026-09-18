@@ -20,6 +20,15 @@ const seed = {
     ]
   }]
 };
+const importPresets={
+  'nl-es-50':{id:'nl-es-frequency-50',title:'50 meest gebruikte Nederlandse woorden',from:'Nederlands',to:'Spaans',createdAt:Date.now(),lastScore:null,source:'OpenSubtitles Nederlandse frequentielijst',words:[
+    ['ik','yo'],['je','tú / te / tu'],['het','el / lo'],['de','el / la'],['dat','eso / que'],['is','es'],['een','un / una'],['niet','no'],['en','y'],['wat','qué / lo que'],
+    ['van','de'],['we','nosotros'],['in','en'],['ze','ella / ellos'],['hij','él'],['op','en / sobre'],['te','a / para'],['zijn','ser / estar / su'],['er','allí / hay'],['maar','pero'],
+    ['die','ese / esa / que'],['heb','tengo'],['me','me'],['met','con'],['voor','para / por'],['als','si / como'],['ben','soy / estoy'],['was','era / estaba / fue'],['dit','esto'],['mijn','mi'],
+    ['om','para / alrededor de'],['aan','a / en'],['jij','tú'],['naar','a / hacia'],['dan','entonces / que'],['hier','aquí'],['weet','sé / sabe'],['kan','puedo / puede'],['geen','ningún / sin'],['nog','todavía / aún'],
+    ['moet','debe / tengo que'],['wil','quiere / quiero'],['wel','sí / realmente'],['ja','sí'],['zo','así / tan'],['heeft','tiene / ha'],['hebben','tener'],['hem','él / lo'],['goed','bien / bueno'],['nee','no']
+  ].map(([front,back])=>({front,back}))}
+};
 const hadLegacyData = Boolean(localStorage.getItem(STORAGE_KEY));
 function freshAccountData(){
   return {score:0,bestStreak:0,todayXp:0,xpDate:new Date().toISOString().slice(0,10),dailyGoal:50,activity:{},activityMinutes:{},studyMinutes:0,answered:0,skillStats:{},sentencePacks:[],lists:[structuredClone(seed.lists[0])]};
@@ -46,6 +55,11 @@ function prepareData(target){
   return target;
 }
 function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateStats(); scheduleCloudSave(); }
+function importPresetFromUrl(){
+  const params=new URLSearchParams(location.search),key=params.get('import'),preset=importPresets[key];if(!preset)return false;
+  if(!data.lists.some(list=>list.id===preset.id)){data.lists.unshift(structuredClone(preset));showToast('Woordenlijst toegevoegd aan dit account');}
+  params.delete('import');history.replaceState({},'',`${location.pathname}${params.size?`?${params}`:''}${location.hash}`);return true;
+}
 function esc(value=''){ return value.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
 function normalize(value){ return value.trim().toLocaleLowerCase('nl').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim(); }
 const equivalentAnswers = [
@@ -386,7 +400,7 @@ async function activateAccount(user){
     if(mayImport)localStorage.setItem('loop-owner-migrated',user.id);
     scheduleCloudSave();
   }else showToast('Account actief; database moet nog worden ingesteld');
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();renderLibrary();updateStats();
+  const imported=importPresetFromUrl();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));if(imported)scheduleCloudSave();renderHome();renderLibrary();updateStats();
 }
 document.querySelectorAll('[data-auth-tab]').forEach(button=>button.addEventListener('click',()=>{authMode=button.dataset.authTab;document.querySelectorAll('[data-auth-tab]').forEach(item=>item.classList.toggle('active',item===button));authSubmit.textContent=authMode==='login'?'Inloggen →':'Account maken →';authMessage.textContent='';}));
 document.querySelector('#auth-form').addEventListener('submit',async event=>{event.preventDefault();const email=document.querySelector('#auth-email').value.trim(),password=document.querySelector('#auth-password').value;authSubmit.disabled=true;authMessage.textContent='Even geduld…';const result=authMode==='signup'?await supabaseClient.auth.signUp({email,password}):await supabaseClient.auth.signInWithPassword({email,password});authSubmit.disabled=false;if(result.error){authMessage.textContent=result.error.message;return;}if(result.data.session)await activateAccount(result.data.user);else authMessage.textContent='Controleer je e-mail en bevestig je account.';});
