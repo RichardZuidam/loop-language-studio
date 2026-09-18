@@ -56,9 +56,10 @@ function prepareData(target){
 }
 function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); updateStats(); scheduleCloudSave(); }
 function importPresetFromUrl(){
-  const params=new URLSearchParams(location.search),key=params.get('import'),preset=importPresets[key];if(!preset)return false;
+  const params=new URLSearchParams(location.search),hashParams=new URLSearchParams(location.hash.replace(/^#/,'')),key=params.get('import')||hashParams.get('import'),preset=importPresets[key];if(!preset)return null;
+  if(!Array.isArray(data.lists))data.lists=[];
   if(!data.lists.some(list=>list.id===preset.id)){data.lists.unshift(structuredClone(preset));showToast('Woordenlijst toegevoegd aan dit account');}
-  params.delete('import');history.replaceState({},'',`${location.pathname}${params.size?`?${params}`:''}${location.hash}`);return true;
+  params.delete('import');hashParams.delete('import');history.replaceState({},'',`${location.pathname}${params.size?`?${params}`:''}${hashParams.size?`#${hashParams}`:''}`);return preset.id;
 }
 function esc(value=''){ return value.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
 function normalize(value){ return value.trim().toLocaleLowerCase('nl').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim(); }
@@ -400,7 +401,7 @@ async function activateAccount(user){
     if(mayImport)localStorage.setItem('loop-owner-migrated',user.id);
     scheduleCloudSave();
   }else showToast('Account actief; database moet nog worden ingesteld');
-  const imported=importPresetFromUrl();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));if(imported)scheduleCloudSave();renderHome();renderLibrary();updateStats();
+  const importedId=importPresetFromUrl();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));if(importedId)scheduleCloudSave();renderHome();renderLibrary();updateStats();if(importedId)openList(importedId);
 }
 document.querySelectorAll('[data-auth-tab]').forEach(button=>button.addEventListener('click',()=>{authMode=button.dataset.authTab;document.querySelectorAll('[data-auth-tab]').forEach(item=>item.classList.toggle('active',item===button));authSubmit.textContent=authMode==='login'?'Inloggen →':'Account maken →';authMessage.textContent='';}));
 document.querySelector('#auth-form').addEventListener('submit',async event=>{event.preventDefault();const email=document.querySelector('#auth-email').value.trim(),password=document.querySelector('#auth-password').value;authSubmit.disabled=true;authMessage.textContent='Even geduld…';const result=authMode==='signup'?await supabaseClient.auth.signUp({email,password}):await supabaseClient.auth.signInWithPassword({email,password});authSubmit.disabled=false;if(result.error){authMessage.textContent=result.error.message;return;}if(result.data.session)await activateAccount(result.data.user);else authMessage.textContent='Controleer je e-mail en bevestig je account.';});
@@ -410,7 +411,7 @@ document.querySelector('#account-close').addEventListener('click',()=>document.q
 document.querySelector('#account-button').addEventListener('click',()=>{if(cloudUser){document.querySelector('#account-email').textContent=cloudUser.email;document.querySelector('#account-modal').classList.remove('hidden');}else authGate.classList.remove('hidden');});
 document.querySelector('#logout-button').addEventListener('click',async()=>{await supabaseClient.auth.signOut();cloudUser=null;document.querySelector('#account-button').textContent='Inloggen';data=freshAccountData();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();document.querySelector('#account-modal').classList.add('hidden');showToast('Je bent uitgelogd');});
 document.querySelector('#export-data').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`loop-export-${new Date().toISOString().slice(0,10)}.json`;link.click();URL.revokeObjectURL(link.href);});
-if(supabaseClient)supabaseClient.auth.getSession().then(({data:{session}})=>session&&activateAccount(session.user));else authMessage.textContent='De accountverbinding kon niet worden geladen.';
+if(supabaseClient)supabaseClient.auth.getSession().then(({data:{session}})=>{if(session)activateAccount(session.user);else if(location.search.includes('import=')||location.hash.includes('import=')){authMessage.textContent='Log in om deze woordenlijst aan je account toe te voegen.';authGate.classList.remove('hidden');}});else authMessage.textContent='De accountverbinding kon niet worden geladen.';
 updateStats(); renderHome();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
 
