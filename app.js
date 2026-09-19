@@ -27,6 +27,12 @@ const importPresets={
     ['die','ese / esa / que'],['heb','tengo'],['me','me'],['met','con'],['voor','para / por'],['als','si / como'],['ben','soy / estoy'],['was','era / estaba / fue'],['dit','esto'],['mijn','mi'],
     ['om','para / alrededor de'],['aan','a / en'],['jij','tú'],['naar','a / hacia'],['dan','entonces / que'],['hier','aquí'],['weet','sé / sabe'],['kan','puedo / puede'],['geen','ningún / sin'],['nog','todavía / aún'],
     ['moet','debe / tengo que'],['wil','quiere / quiero'],['wel','sí / realmente'],['ja','sí'],['zo','así / tan'],['heeft','tiene / ha'],['hebben','tener'],['hem','él / lo'],['goed','bien / bueno'],['nee','no']
+  ].map(([front,back])=>({front,back}))},
+  'ru-nl-alphabet':{id:'ru-nl-cyrillic-alphabet',title:'Russisch — Cyrillisch alfabet',from:'Russisch',to:'Nederlandse uitspraak',createdAt:Date.now(),lastScore:null,source:'Russisch alfabet',words:[
+    ['А а','a'],['Б б','b'],['В в','v'],['Г г','g'],['Д д','d'],['Е е','je / e'],['Ё ё','jo'],['Ж ж','zj'],['З з','z'],['И и','ie'],['Й й','korte j'],
+    ['К к','k'],['Л л','l'],['М м','m'],['Н н','n'],['О о','o'],['П п','p'],['Р р','rollende r'],['С с','s'],['Т т','t'],['У у','oe'],['Ф ф','f'],
+    ['Х х','ch, zoals in lach'],['Ц ц','ts'],['Ч ч','tsj'],['Ш ш','sj'],['Щ щ','sjtsj'],['Ъ ъ','hard teken, geen eigen klank'],['Ы ы','harde i-klank'],
+    ['Ь ь','zacht teken, geen eigen klank'],['Э э','è'],['Ю ю','joe'],['Я я','ja']
   ].map(([front,back])=>({front,back}))}
 };
 const hadLegacyData = Boolean(localStorage.getItem(STORAGE_KEY));
