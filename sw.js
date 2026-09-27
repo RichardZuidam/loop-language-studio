@@ -1,5 +1,5 @@
-const CACHE='loop-v26';
-const ASSETS=['./','index.html','learn-vietnamese.html','privacy.html','styles.css?v=26','supabase-config.js?v=26','frequency-data.js?v=26','sentence-data.js?v=26','context-data.js?v=26','app.js?v=26','i18n.js?v=26','manifest.webmanifest','icon.svg'];
+const CACHE='loop-v27';
+const ASSETS=['./','index.html','learn-vietnamese.html','privacy.html','styles.css?v=27','supabase-config.js?v=27','frequency-data.js?v=27','sentence-data.js?v=27','context-data.js?v=27','app.js?v=27','i18n.js?v=27','manifest.webmanifest','icon.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
