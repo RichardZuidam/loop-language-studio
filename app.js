@@ -231,6 +231,7 @@ function startQuiz(mode,options={}){
   quiz={mode,list,items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false,showTranslation:options.showTranslation!==false,direction:options.direction||'forward',mistakes:[],startedAt:Date.now()}; route('quiz'); renderQuiz();
 }
 function addMistake(item){if(!quiz.mistakes.includes(item))quiz.mistakes.push(item);}
+function removeMistake(item){quiz.mistakes=quiz.mistakes.filter(mistake=>mistake!==item);}
 function recordSkill(key,correct){const stat=data.skillStats[key]||(data.skillStats[key]={attempts:0,correct:0});stat.attempts++;if(correct)stat.correct++;data.answered=(data.answered||0)+1;}
 function questionSides(word){const reverse=quiz.direction==='reverse'||(quiz.direction==='both'&&quiz.index%2===1);return reverse?{prompt:word.back,answer:word.front,from:quiz.list.to,to:quiz.list.from}:{prompt:word.front,answer:word.back,from:quiz.list.from,to:quiz.list.to};}
 function renderQuiz(){
@@ -275,7 +276,7 @@ function checkContextAnswer(event){
   const correct=quiz.contextMode==='fill'?answersMatch(input.value,word.front):context.keywords.some(keyword=>{const key=normalize(keyword);return given.includes(key)||key.includes(given)&&given.length>=4;});quiz.answered=true;input.disabled=true;
   const feedback=document.querySelector('#answer-feedback');recordSkill('context',correct);
   if(correct){recordWordResult(word,true);quiz.correct++;quiz.streak++;quiz.points+=12;feedback.className='answer-feedback correct';feedback.innerHTML=`✓ Goede uitleg! +12 XP<small>${esc(context.explanation)}</small>`;}
-  else{recordWordResult(word,false);addMistake(word);quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`${quiz.contextMode==='fill'?`Het ontbrekende woord is <strong>${esc(word.front)}</strong>. `:''}${esc(context.explanation)}<div class="feedback-actions"><button type="button" id="accept-context">Mijn uitleg ook goedkeuren</button></div>`;document.querySelector('#accept-context').addEventListener('click',()=>{recordWordResult(word,true);quiz.correct++;quiz.points+=8;nextQuestion();});}
+  else{recordWordResult(word,false);addMistake(word);quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`${quiz.contextMode==='fill'?`Het ontbrekende woord is <strong>${esc(word.front)}</strong>. `:''}${esc(context.explanation)}<div class="feedback-actions"><button type="button" id="accept-context">Mijn uitleg ook goedkeuren</button></div>`;document.querySelector('#accept-context').addEventListener('click',()=>{removeMistake(word);recordWordResult(word,true);quiz.correct++;quiz.points+=8;nextQuestion();});}
   const button=event.submitter;button.textContent='→';button.setAttribute('aria-label','Volgende vraag');document.querySelector('#quiz-score').textContent=quiz.points;
 }
 function checkContextChoice(answer){
@@ -292,7 +293,7 @@ function checkChoice(answer){
   else{recordWordResult(word,false);addMistake(word);quiz.streak=0;feedback.className='answer-feedback wrong';feedback.innerHTML=`Niet helemaal — <strong>${esc(sides.answer)}</strong><div class="feedback-actions"><button id="accept-word">Toch goed rekenen</button><button id="choice-next">Volgende →</button></div>`;document.querySelector('#accept-word').addEventListener('click',acceptCurrentWord);}
   document.querySelector('#choice-next').addEventListener('click',nextQuestion);document.querySelector('#quiz-score').textContent=quiz.points;
 }
-function acceptCurrentWord(){if(!quiz.answered)return;recordWordResult(quiz.items[quiz.index],true);quiz.correct++;quiz.points+=6;nextQuestion();}
+function acceptCurrentWord(){if(!quiz.answered)return;const word=quiz.items[quiz.index];removeMistake(word);recordWordResult(word,true);quiz.correct++;quiz.points+=6;nextQuestion();}
 function speakCurrent(){
   if(!('speechSynthesis' in window)||!quiz)return;const text=quiz.kind==='sentence'?quiz.items[quiz.index]?.vi:quiz.items[quiz.index]?.front;if(!text)return;
   speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang='vi-VN';utterance.rate=.82;speechSynthesis.speak(utterance);
@@ -320,7 +321,7 @@ function awardSentence(sentence,points){quiz.correct++;quiz.streak++;quiz.points
 function sentenceFeedback(correct,exact=false){
   const sentence=quiz.items[quiz.index],feedback=document.querySelector('#answer-feedback');quiz.answered=true;recordSkill(quiz.mode==='build'?'sentenceBuild':'sentenceTranslate',correct);
   if(correct){const gained=quiz.mode==='translate'?15:10;awardSentence(sentence,gained);feedback.className='answer-feedback correct';feedback.innerHTML=`✓ ${exact?'Helemaal goed!':'Goed — dit antwoord klopt ook.'} +${gained} XP <button class="feedback-next" id="sentence-next">Volgende →</button>`;}
-  else{addMistake(sentence);quiz.streak=0;sentence.mastery=Math.max(0,(sentence.mastery||0)-1);feedback.className='answer-feedback wrong';feedback.innerHTML=`Nog niet. <strong>${esc(sentence.vi)}</strong>${sentence.note?`<small>${esc(sentence.note)}</small>`:''}<div class="feedback-actions"><button id="accept-sentence">Mijn antwoord goedkeuren</button><button id="sentence-next">Volgende →</button></div>`;document.querySelector('#accept-sentence').addEventListener('click',()=>{awardSentence(sentence,8);nextQuestion();});}
+  else{addMistake(sentence);quiz.streak=0;sentence.mastery=Math.max(0,(sentence.mastery||0)-1);feedback.className='answer-feedback wrong';feedback.innerHTML=`Nog niet. <strong>${esc(sentence.vi)}</strong>${sentence.note?`<small>${esc(sentence.note)}</small>`:''}<div class="feedback-actions"><button id="accept-sentence">Mijn antwoord goedkeuren</button><button id="sentence-next">Volgende →</button></div>`;document.querySelector('#accept-sentence').addEventListener('click',()=>{removeMistake(sentence);awardSentence(sentence,8);nextQuestion();});}
   document.querySelector('#sentence-next').addEventListener('click',nextQuestion);
 }
 function checkBuiltSentence(){if(quiz.answered){nextQuestion();return;}const sentence=quiz.items[quiz.index],given=quiz.selected.map(token=>token.word).join(' ');sentenceFeedback(normalize(given)===normalize(sentence.vi),true);}
