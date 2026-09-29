@@ -9,7 +9,7 @@ const starterSentencePacks = (window.LOOP_SENTENCE_PACKS || []).map(pack => ({
 }));
 const seed = {
   score: 0, bestStreak: 0, todayXp: 0, xpDate: new Date().toISOString().slice(0,10), dailyGoal: 50,
-  activity: {}, activityMinutes:{}, studyMinutes:0, answered:0, skillStats:{},
+  activity: {}, activityMinutes:{}, studyMinutes:0, answered:0, skillStats:{}, readingItems:[],
   sentencePacks: starterSentencePacks,
   lists: [{
     id: 'vietnamese-starter', title: 'Vietnamees — Start', from: 'Vietnamees', to: 'Nederlands', createdAt: Date.now(), lastScore: null,
@@ -37,10 +37,10 @@ const importPresets={
 };
 const hadLegacyData = Boolean(localStorage.getItem(STORAGE_KEY));
 function freshAccountData(){
-  return {score:0,bestStreak:0,todayXp:0,xpDate:new Date().toISOString().slice(0,10),dailyGoal:50,activity:{},activityMinutes:{},studyMinutes:0,answered:0,skillStats:{},sentencePacks:[],lists:[structuredClone(seed.lists[0])]};
+  return {score:0,bestStreak:0,todayXp:0,xpDate:new Date().toISOString().slice(0,10),dailyGoal:50,activity:{},activityMinutes:{},studyMinutes:0,answered:0,skillStats:{},readingItems:[],sentencePacks:[],lists:[structuredClone(seed.lists[0])]};
 }
 let data = loadData();
-let activeListId = null, editingId = null, quiz = null, activeSentencePackId = null, editingSentencePackId = null, cloudUser = null, cloudSaveTimer = null, pendingPracticeMode = null;
+let activeListId = null, editingId = null, quiz = null, activeSentencePackId = null, editingSentencePackId = null, activeReadingId=null, selectedReaderWord=null, cloudUser = null, cloudSaveTimer = null, pendingPracticeMode = null;
 
 function loadData(){
   try {
@@ -56,7 +56,7 @@ function isMistakeFromLastWeek(item){const cutoff=new Date();cutoff.setDate(cuto
 function weeklyDifficultWords(){return data.lists.flatMap(list=>list.words||[]).filter(isMistakeFromLastWeek);}
 function weeklyDifficultSentences(){return data.sentencePacks.flatMap(pack=>pack.sentences||[]).filter(isMistakeFromLastWeek);}
 function prepareData(target){
-  const today=dayKey();if(target.xpDate!==today){target.todayXp=0;target.xpDate=today;}if(!target.dailyGoal)target.dailyGoal=50;if(!target.activity)target.activity={};if(!target.activityMinutes)target.activityMinutes={};if(!target.studyMinutes)target.studyMinutes=0;if(!target.answered)target.answered=0;if(!target.skillStats)target.skillStats={};
+  const today=dayKey();if(target.xpDate!==today){target.todayXp=0;target.xpDate=today;}if(!target.dailyGoal)target.dailyGoal=50;if(!target.activity)target.activity={};if(!target.activityMinutes)target.activityMinutes={};if(!target.studyMinutes)target.studyMinutes=0;if(!target.answered)target.answered=0;if(!target.skillStats)target.skillStats={};if(!Array.isArray(target.readingItems))target.readingItems=[];
   const firstFrequency=(target.lists||[]).find(list=>list.id==='vi-frequency-1'||list.title==='Vietnamese frequentie 001–100');
   if(firstFrequency){const sau=firstFrequency.words.find(word=>word.front==='sau');if(sau){sau.front='sau đó';sau.back='daarna / vervolgens';}if(!firstFrequency.words.some(word=>word.front==='sự')){const behindIndex=firstFrequency.words.findIndex(word=>word.front==='đằng sau');firstFrequency.words.splice(Math.max(0,behindIndex),0,{front:'sự',back:'gebeurtenis / zaak / aangelegenheid / verschijnsel'});}}
   if(firstFrequency){const can=firstFrequency.words.find(word=>word.front==='có thể');if(can)can.back='kunnen / misschien';}
@@ -110,6 +110,7 @@ function route(name){
   if(name==='home') renderHome();
   if(name==='library') renderLibrary();
   if(name==='sentences') renderSentencePacks();
+  if(name==='reading') renderReadingLibrary();
   if(name==='statistics') renderStatistics();
   window.scrollTo(0,0); document.querySelector('#app').focus({preventScroll:true});
 }
@@ -163,6 +164,36 @@ function renderLibrary(){
   const root=document.querySelector('#all-lists'); root.innerHTML=lists.length?lists.map(cardHTML).join(''):emptyHTML(); bindCards(root);
   root.querySelector('[data-empty-create]')?.addEventListener('click',newList);
   document.querySelector('#list-count').textContent=`${lists.length} ${lists.length===1?'lijst':'lijsten'}`;
+}
+const readerLanguageNames={vi:'Vietnamees',ru:'Russisch',es:'Spaans',fr:'Frans',en:'Engels',nl:'Nederlands'};
+function readingById(id){return data.readingItems.find(item=>item.id===id);}
+function readerWords(text){return text.match(/\p{L}[\p{L}\p{M}'’-]*/gu)||[];}
+function readerSentence(text,word){return (text.match(/[^.!?\n]+[.!?]?/g)||[]).find(sentence=>normalize(sentence).includes(normalize(word)))?.trim()||'';}
+function renderReadingLibrary(){
+  const root=document.querySelector('#reading-library'),items=[...(data.readingItems||[])].sort((a,b)=>(b.updatedAt||b.createdAt)-(a.updatedAt||a.createdAt));document.querySelector('#reading-count').textContent=`${items.length} ${items.length===1?'tekst':'teksten'}`;
+  root.innerHTML=items.length?items.map(item=>{const unique=[...new Set(readerWords(item.text).map(normalize))],seen=(item.clickedWords||[]).length,progress=unique.length?Math.min(100,Math.round(seen/unique.length*100)):0;return`<button class="reading-card" data-reading-id="${esc(item.id)}"><span class="eyebrow">${esc(readerLanguageNames[item.sourceLanguage]||item.sourceLanguage)} → ${esc(readerLanguageNames[item.targetLanguage]||item.targetLanguage)}</span><h3>${esc(item.title)}</h3><p>${readerWords(item.text).length} woorden · ${progress}% ontdekt</p><i><b style="width:${progress}%"></b></i><small>${item.url?'GEÏMPORTEERD':'EIGEN TEKST'} →</small></button>`;}).join(''):'<div class="empty"><h3>Nog geen teksten</h3><p>Plak een tekst of importeer een artikel om te beginnen.</p></div>';
+  root.querySelectorAll('[data-reading-id]').forEach(button=>button.addEventListener('click',()=>openReading(button.dataset.readingId)));
+}
+function renderReaderContent(item){
+  const list=data.lists.find(entry=>entry.id===`reading-list-${item.id}`),saved=new Set((list?.words||[]).map(word=>normalize(word.front))),seen=new Set(item.clickedWords||[]);
+  const tokens=item.text.match(/\p{L}[\p{L}\p{M}'’-]*|\s+|[^\s\p{L}]+/gu)||[];document.querySelector('#reader-content').innerHTML=tokens.map(token=>/^\p{L}/u.test(token)?`<button class="reader-token ${saved.has(normalize(token))?'saved':seen.has(normalize(token))?'seen':''}" data-reader-word="${esc(token)}">${esc(token)}</button>`:esc(token)).join('');
+  document.querySelectorAll('[data-reader-word]').forEach(button=>button.addEventListener('click',()=>selectReaderWord(button.dataset.readerWord)));
+  const unique=[...new Set(readerWords(item.text).map(normalize))],progress=unique.length?Math.min(100,Math.round((item.clickedWords||[]).length/unique.length*100)):0;document.querySelector('#reader-progress-label').textContent=`${progress}% ontdekt · ${(list?.words||[]).length} opgeslagen`;document.querySelector('#reader-progress-bar').style.width=`${progress}%`;
+}
+function openReading(id){
+  const item=readingById(id);if(!item)return;activeReadingId=id;item.updatedAt=Date.now();document.querySelector('#reader-detail-title').textContent=item.title;document.querySelector('#reader-detail-languages').textContent=`${readerLanguageNames[item.sourceLanguage]||item.sourceLanguage} → ${readerLanguageNames[item.targetLanguage]||item.targetLanguage}`;document.querySelector('#reader-detail-meta').textContent=`${readerWords(item.text).length} woorden`;
+  const source=document.querySelector('#reader-source-link');source.classList.toggle('hidden',!item.url);if(item.url)source.href=item.url;selectedReaderWord=null;document.querySelector('#reader-selected-word').textContent='—';document.querySelector('#reader-context-sentence').textContent='Klik op een woord voor vertaling en context.';document.querySelector('#reader-word-translation').value='';document.querySelector('#reader-save-word').disabled=true;document.querySelector('#reader-speak-word').disabled=true;document.querySelector('#reader-word-status').textContent='';renderReaderContent(item);route('reader-detail');saveData();
+}
+async function selectReaderWord(word){
+  const item=readingById(activeReadingId);if(!item)return;selectedReaderWord=word;const normalized=normalize(word);item.clickedWords=[...new Set([...(item.clickedWords||[]),normalized])];document.querySelector('#reader-selected-word').textContent=word;document.querySelector('#reader-context-sentence').textContent=readerSentence(item.text,word);document.querySelector('#reader-speak-word').disabled=false;document.querySelector('#reader-save-word').disabled=false;const input=document.querySelector('#reader-word-translation'),status=document.querySelector('#reader-word-status');input.value='';status.textContent='Vertaling ophalen…';renderReaderContent(item);saveData();
+  try{const response=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=${item.sourceLanguage}|${item.targetLanguage}`);const result=await response.json();input.value=result.responseData?.translatedText||'';status.textContent='Controleer de vertaling voordat je hem opslaat.';}catch{status.textContent='Automatisch vertalen lukte niet. Vul de vertaling zelf in.';}
+}
+function saveReaderWord(){
+  const item=readingById(activeReadingId),translation=document.querySelector('#reader-word-translation').value.trim();if(!item||!selectedReaderWord||!translation)return showToast('Vul eerst een vertaling in');let list=data.lists.find(entry=>entry.id===`reading-list-${item.id}`);if(!list){list={id:`reading-list-${item.id}`,title:`Lezen — ${item.title}`,from:readerLanguageNames[item.sourceLanguage]||item.sourceLanguage,to:readerLanguageNames[item.targetLanguage]||item.targetLanguage,createdAt:Date.now(),lastScore:null,words:[]};data.lists.unshift(list);}const existing=list.words.find(word=>normalize(word.front)===normalize(selectedReaderWord));if(existing){existing.back=translation;existing.contextSentence=readerSentence(item.text,selectedReaderWord);}else list.words.push({front:selectedReaderWord,back:translation,contextSentence:readerSentence(item.text,selectedReaderWord)});saveData();renderReaderContent(item);document.querySelector('#reader-word-status').textContent='Opgeslagen in je persoonlijke woordenlijst.';showToast('Woord opgeslagen');
+}
+async function importReaderUrl(){
+  const url=document.querySelector('#reader-url').value.trim(),status=document.querySelector('#reader-import-status');if(!url)return showToast('Vul eerst een link in');status.textContent='Content ophalen…';document.querySelector('#reader-import-url').disabled=true;
+  try{const response=await fetch(`https://r.jina.ai/${url}`);if(!response.ok)throw new Error();let text=await response.text();const title=text.match(/^Title:\s*(.+)$/m)?.[1]?.trim();text=(text.split(/Markdown Content:\s*/i)[1]||text).replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/^#{1,6}\s+/gm,'').trim();if(title&&!document.querySelector('#reader-title').value)document.querySelector('#reader-title').value=title;if(text.length<80)throw new Error();document.querySelector('#reader-text').value=text.slice(0,60000);status.textContent='Content geïmporteerd. Controleer de tekst en sla hem op.';}catch{status.textContent='Automatisch importeren lukte niet. Plak het artikel of transcript hieronder.';}finally{document.querySelector('#reader-import-url').disabled=false;}
 }
 function newList(){ editingId=null; document.querySelector('#editor-heading').textContent='NIEUWE LIJST.'; document.querySelector('#list-form').reset(); route('editor'); }
 function editList(){
@@ -373,6 +404,11 @@ document.querySelector('#hero-create').addEventListener('click',newList);documen
 document.querySelector('#list-search').addEventListener('input',renderLibrary); document.querySelector('#edit-list').addEventListener('click',editList); document.querySelector('#delete-list').addEventListener('click',deleteList);
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startQuiz(b.dataset.mode))); document.querySelector('#quiz-close').addEventListener('click',()=>quiz?.weeklyReview?route('statistics'):quiz?.kind==='sentence'?openSentencePack(quiz.pack.id):quiz?.kind==='daily'?route('home'):openList(quiz.list.id));
 document.querySelector('#review-week-words').addEventListener('click',startWeeklyWordReview);document.querySelector('#review-week-sentences').addEventListener('click',startWeeklySentenceReview);
+document.querySelector('#reader-import-url').addEventListener('click',importReaderUrl);
+document.querySelector('#reader-form').addEventListener('submit',event=>{event.preventDefault();const item={id:`reading-${Date.now()}`,title:document.querySelector('#reader-title').value.trim(),sourceLanguage:document.querySelector('#reader-source-language').value,targetLanguage:document.querySelector('#reader-target-language').value,url:document.querySelector('#reader-url').value.trim(),text:document.querySelector('#reader-text').value.trim(),clickedWords:[],createdAt:Date.now(),updatedAt:Date.now()};data.readingItems.unshift(item);saveData();event.target.reset();document.querySelector('#reader-import-status').textContent='Bij video of audio kun je hieronder ook zelf het transcript plakken.';openReading(item.id);showToast('Tekst opgeslagen in je bibliotheek');});
+document.querySelector('#reader-save-word').addEventListener('click',saveReaderWord);
+document.querySelector('#reader-speak-word').addEventListener('click',()=>{const item=readingById(activeReadingId);if(!item||!selectedReaderWord||!('speechSynthesis' in window))return;const utterance=new SpeechSynthesisUtterance(selectedReaderWord);utterance.lang=item.sourceLanguage;speechSynthesis.cancel();speechSynthesis.speak(utterance);});
+document.querySelector('#reader-delete').addEventListener('click',()=>{const item=readingById(activeReadingId);if(!item||!confirm(`Verwijder “${item.title}” uit je bibliotheek?`))return;data.readingItems=data.readingItems.filter(entry=>entry.id!==item.id);saveData();route('reading');showToast('Tekst verwijderd');});
 document.querySelector('#context-choice-close').addEventListener('click',()=>document.querySelector('#context-choice-modal').classList.add('hidden'));
 document.querySelectorAll('[data-context-translation]').forEach(button=>button.addEventListener('click',()=>{document.querySelector('#context-choice-modal').classList.add('hidden');startQuiz('context',{configured:true,showTranslation:button.dataset.contextTranslation==='yes'});}));
 document.querySelector('#direction-choice-close').addEventListener('click',()=>document.querySelector('#direction-choice-modal').classList.add('hidden'));
