@@ -7,7 +7,7 @@
   <meta name="description" content="Persoonlijke language learning studio voor woorden, zinnen en uitspraak." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=30" />
+  <link rel="stylesheet" href="styles.css?v=31" />
   <title>LOOP — Language Studio</title>
 </head>
 <body>
@@ -19,11 +19,11 @@
   <header class="topbar">
     <button class="brand" data-route="home" aria-label="Naar home"><span>LOOP</span><small>Language studio</small></button>
     <nav aria-label="Hoofdnavigatie">
-      <button data-route="home" class="nav-link active">Home</button>
-      <button data-route="library" class="nav-link">Lijsten</button>
-      <button data-route="sentences" class="nav-link">Zinnen</button>
-      <button data-route="reading" class="nav-link">Lezen</button>
-      <button data-route="statistics" class="nav-link">Stats</button>
+      <button data-route="home" class="nav-link active">Vandaag</button>
+      <button data-route="roadmap" class="nav-link">Roadmap</button>
+      <button data-route="practice" class="nav-link">Oefenen</button>
+      <button data-route="collection" class="nav-link">Bibliotheek</button>
+      <button data-route="statistics" class="nav-link">Profiel</button>
     </nav>
     <div class="top-actions"><label class="language-picker" aria-label="Taal"><select id="language-select"><option value="nl">NL</option><option value="en">EN</option><option value="ru">RU</option></select></label><button id="account-button" class="account-button" aria-label="Inloggen of account openen">Inloggen</button><button id="theme-toggle" class="theme-toggle" aria-label="Donker thema">◐</button><div class="score-pill" aria-label="Totaal aantal punten"><span>●</span> <strong id="total-score">0</strong> XP</div></div>
   </header>
@@ -32,10 +32,10 @@
     <section id="home-view" class="view active">
       <div class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">YOUR PERSONAL LANGUAGE SYSTEM / 01</p>
-          <h1>WORDS<br><em>THAT STICK.</em></h1>
-          <p class="intro">Maak je eigen woordenlijsten. Oefen slim. Bouw elke dag aan een taal die van jou wordt.</p>
-          <div class="hero-actions"><button class="btn btn-accent" id="daily-review">Dagelijkse ronde <span>→</span></button><button class="btn btn-ghost" id="hero-create">Nieuwe lijst <span>↗</span></button></div>
+          <p class="eyebrow">JOUW LES VAN VANDAAG</p>
+          <h1>READY.<br><em>SET. LOOP.</em></h1>
+          <p class="intro" id="daily-lesson-copy">Een slimme mix van nieuwe stof, context en herhaling.</p>
+          <div class="hero-actions"><button class="btn btn-accent" id="daily-review">Start dagelijkse les <span>→</span></button><button class="btn btn-ghost" data-route="practice">Vrij oefenen <span>↗</span></button></div>
         </div>
         <aside class="hero-card">
           <div class="motif"><span>L</span><span>O</span><span>O</span><span>P</span></div>
@@ -44,6 +44,7 @@
         </aside>
       </div>
 
+      <section class="today-lesson-strip"><article><span>01</span><div><b>Opwarmen</b><small>Herhaal wat bijna wegzakt</small></div></article><article><span>02</span><div><b>Nieuwe stap</b><small>Woorden of zinnen in context</small></div></article><article><span>03</span><div><b>Challenge</b><small>Zelf produceren en fouten herstellen</small></div></article><article class="lesson-reward"><span>★</span><div><b>Dagbeloning</b><small>XP en voortgang op je roadmap</small></div></article></section>
       <section class="learning-dashboard"><article><span>VANDAAG TE DOEN</span><strong id="due-count">0</strong></article><article><span>BEHEERST</span><strong id="mastered-count">0</strong></article><article><span>OOIT GEOEFEND</span><strong id="learning-count">0</strong></article></section>
 
       <section class="section-block">
@@ -60,6 +61,32 @@
           <article class="roadmap-item"><span>03</span><h3>Spraak</h3><p>Luisteren, inspreken en uitspraak trainen.</p><b>SOON</b></article>
         </div>
       </section>
+    </section>
+
+    <section id="roadmap-view" class="view roadmap-view">
+      <div class="page-head"><div><p class="eyebrow">STORY MODE</p><h1>ROAD TO<br><em>FLUENCY.</em></h1><p class="intro">Een duidelijke route met echte diepgang. Voltooi lessen, checkpoints en context-challenges.</p></div><div class="roadmap-overview"><strong id="roadmap-level">LEVEL 1</strong><span id="roadmap-summary">0 lessen voltooid</span></div></div>
+      <div id="story-roadmap" class="story-roadmap"></div>
+    </section>
+
+    <section id="practice-view" class="view hub-view">
+      <div class="page-head"><div><p class="eyebrow">FREE PLAY</p><h1>KIES JE<br><em>TRAINING.</em></h1><p class="intro">Geen vaste route nodig? Train precies wat jij vandaag wilt verbeteren.</p></div></div>
+      <div class="hub-grid practice-hub">
+        <button class="hub-card accent-card" data-route="library"><span>01 / WORDS</span><h2>Woorden</h2><p>Overhoren, flashcards, meerkeuze en context.</p><i>→</i></button>
+        <button class="hub-card" data-route="sentences"><span>02 / SENTENCES</span><h2>Zinnen</h2><p>Bouwen, vertalen en woordvolgorde begrijpen.</p><i>→</i></button>
+        <button class="hub-card" data-route="reading"><span>03 / READING</span><h2>Lezen</h2><p>Leer met artikelen, verhalen en transcripten.</p><i>→</i></button>
+        <button class="hub-card" id="practice-daily-review"><span>04 / REVIEW</span><h2>Herhalen</h2><p>Train wat vandaag dreigt weg te zakken.</p><i>→</i></button>
+        <button class="hub-card" id="practice-hard-words"><span>05 / BOSS FIGHT</span><h2>Moeilijke woorden</h2><p>Pak alle fouten uit de laatste zeven dagen aan.</p><i>→</i></button>
+        <button class="hub-card" id="practice-hard-sentences"><span>06 / BOSS FIGHT</span><h2>Moeilijke zinnen</h2><p>Herbouw de zinnen waar je moeite mee had.</p><i>→</i></button>
+      </div>
+    </section>
+
+    <section id="collection-view" class="view hub-view">
+      <div class="page-head"><div><p class="eyebrow">YOUR CONTENT</p><h1>JOUW<br><em>BIBLIOTHEEK.</em></h1><p class="intro">Alles wat je zelf hebt gemaakt of geïmporteerd, overzichtelijk op één plek.</p></div></div>
+      <div class="hub-grid collection-hub">
+        <button class="hub-card" data-route="library"><span>WOORDENLIJSTEN</span><h2 id="collection-list-count">0</h2><p>Eigen woorden en opgeslagen leeswoorden.</p><i>Open →</i></button>
+        <button class="hub-card" data-route="sentences"><span>ZINNENTHEMA'S</span><h2 id="collection-sentence-count">0</h2><p>Zinnen, vertalingen en context.</p><i>Open →</i></button>
+        <button class="hub-card" data-route="reading"><span>TEKSTEN</span><h2 id="collection-reading-count">0</h2><p>Artikelen, verhalen en transcripten.</p><i>Open →</i></button>
+      </div>
     </section>
 
     <section id="library-view" class="view">
@@ -171,12 +198,12 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <footer class="site-footer"><span>© LOOP LANGUAGE STUDIO</span><nav><a href="learn-vietnamese.html">Gratis Vietnamees</a><a href="privacy.html">Privacy</a></nav></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=30"></script>
-  <script src="frequency-data.js?v=30"></script>
-  <script src="sentence-data.js?v=30"></script>
-  <script src="context-data.js?v=30"></script>
-  <script src="app.js?v=30"></script>
-  <script src="i18n.js?v=30"></script>
+  <script src="supabase-config.js?v=31"></script>
+  <script src="frequency-data.js?v=31"></script>
+  <script src="sentence-data.js?v=31"></script>
+  <script src="context-data.js?v=31"></script>
+  <script src="app.js?v=31"></script>
+  <script src="i18n.js?v=31"></script>
 </body>
 </html>
 
