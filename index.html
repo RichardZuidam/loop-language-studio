@@ -7,7 +7,7 @@
   <meta name="description" content="Persoonlijke language learning studio voor woorden, zinnen en uitspraak." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=29" />
+  <link rel="stylesheet" href="styles.css?v=30" />
   <title>LOOP — Language Studio</title>
 </head>
 <body>
@@ -22,6 +22,7 @@
       <button data-route="home" class="nav-link active">Home</button>
       <button data-route="library" class="nav-link">Lijsten</button>
       <button data-route="sentences" class="nav-link">Zinnen</button>
+      <button data-route="reading" class="nav-link">Lezen</button>
       <button data-route="statistics" class="nav-link">Stats</button>
     </nav>
     <div class="top-actions"><label class="language-picker" aria-label="Taal"><select id="language-select"><option value="nl">NL</option><option value="en">EN</option><option value="ru">RU</option></select></label><button id="account-button" class="account-button" aria-label="Inloggen of account openen">Inloggen</button><button id="theme-toggle" class="theme-toggle" aria-label="Donker thema">◐</button><div class="score-pill" aria-label="Totaal aantal punten"><span>●</span> <strong id="total-score">0</strong> XP</div></div>
@@ -71,6 +72,27 @@
       <div class="page-head"><div><p class="eyebrow">SENTENCE STUDIO / 02</p><h1>ZINNEN<br><em>IN CONTEXT.</em></h1></div><button class="btn btn-accent" id="sentence-create">+ Nieuwe zinnen</button></div>
       <div class="toolbar"><span>Leer betekenis én woordvolgorde</span><span id="sentence-pack-count"></span></div>
       <div id="sentence-packs" class="sentence-grid"></div>
+    </section>
+
+    <section id="reading-view" class="view reading-view">
+      <div class="page-head"><div><p class="eyebrow">READ / IMPORT / LEARN</p><h1>LEES WAT<br><em>JIJ LEUK VINDT.</em></h1></div></div>
+      <div class="reader-layout">
+        <section class="reader-import-panel"><p class="eyebrow">NIEUWE TEKST</p><h2>Plakken of importeren</h2><form id="reader-form">
+          <label>Titel<input id="reader-title" maxlength="80" placeholder="Bijv. Vietnamees nieuwsartikel" required></label>
+          <div class="field-row"><label>Taal van de tekst<select id="reader-source-language"><option value="vi">Vietnamees</option><option value="ru">Russisch</option><option value="es">Spaans</option><option value="fr">Frans</option><option value="en">Engels</option><option value="nl">Nederlands</option></select></label><label>Vertalen naar<select id="reader-target-language"><option value="nl">Nederlands</option><option value="en">Engels</option><option value="ru">Russisch</option><option value="es">Spaans</option><option value="fr">Frans</option></select></label></div>
+          <label>Link naar artikel, YouTube of podcast<div class="reader-url-row"><input id="reader-url" type="url" placeholder="https://..."><button type="button" class="btn btn-ghost" id="reader-import-url">Importeer</button></div></label><p id="reader-import-status" class="input-hint">Bij video of audio kun je hieronder ook zelf het transcript plakken.</p>
+          <label>Tekst of transcript<textarea id="reader-text" rows="10" placeholder="Plak hier een artikel, verhaal of transcript…" required></textarea></label>
+          <button class="btn btn-accent">Opslaan en lezen →</button>
+        </form></section>
+        <section><div class="section-heading"><div><p class="eyebrow">MIJN BIBLIOTHEEK</p><h2>Verder lezen</h2></div><span id="reading-count"></span></div><div id="reading-library" class="reading-library"></div></section>
+      </div>
+    </section>
+
+    <section id="reader-detail-view" class="view reader-detail-view">
+      <button class="back-button" data-route="reading">← Mijn bibliotheek</button>
+      <header class="reader-detail-head"><div><p class="eyebrow" id="reader-detail-languages"></p><h1 id="reader-detail-title"></h1><p id="reader-detail-meta"></p></div><div class="detail-actions"><a id="reader-source-link" class="icon-btn hidden" target="_blank" rel="noopener">Bron ↗</a><button class="icon-btn danger" id="reader-delete">Verwijder</button></div></header>
+      <div class="reader-progress"><span id="reader-progress-label">0% gelezen</span><i><b id="reader-progress-bar"></b></i></div>
+      <div class="reader-workspace"><article id="reader-content" class="reader-content"></article><aside id="reader-word-panel" class="reader-word-panel"><p class="eyebrow">KLIK EEN WOORD</p><h2 id="reader-selected-word">—</h2><p id="reader-context-sentence">De vertaling en originele zin verschijnen hier.</p><button class="btn btn-ghost" id="reader-speak-word" disabled>Luister ◖))</button><label>Vertaling<input id="reader-word-translation" placeholder="Wordt automatisch opgehaald"></label><button class="btn btn-accent" id="reader-save-word" disabled>Opslaan als woord →</button><p id="reader-word-status" class="input-hint"></p></aside></div>
     </section>
 
     <section id="statistics-view" class="view stats-view">
@@ -149,12 +171,12 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <footer class="site-footer"><span>© LOOP LANGUAGE STUDIO</span><nav><a href="learn-vietnamese.html">Gratis Vietnamees</a><a href="privacy.html">Privacy</a></nav></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="supabase-config.js?v=29"></script>
-  <script src="frequency-data.js?v=29"></script>
-  <script src="sentence-data.js?v=29"></script>
-  <script src="context-data.js?v=29"></script>
-  <script src="app.js?v=29"></script>
-  <script src="i18n.js?v=29"></script>
+  <script src="supabase-config.js?v=30"></script>
+  <script src="frequency-data.js?v=30"></script>
+  <script src="sentence-data.js?v=30"></script>
+  <script src="context-data.js?v=30"></script>
+  <script src="app.js?v=30"></script>
+  <script src="i18n.js?v=30"></script>
 </body>
 </html>
 
