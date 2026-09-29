@@ -106,8 +106,11 @@ function showToast(message){ const toast=document.querySelector('#toast'); toast
 function route(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelector(`#${name}-view`)?.classList.add('active');
-  document.querySelectorAll('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.route===name));
+  const navName=['library','sentences','reading','reader-detail','detail','sentence-detail','editor','sentence-editor'].includes(name)?'collection':name==='quiz'?'practice':name;document.querySelectorAll('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.route===navName));
   if(name==='home') renderHome();
+  if(name==='roadmap') renderRoadmap();
+  if(name==='practice') renderPracticeHub();
+  if(name==='collection') renderCollectionHub();
   if(name==='library') renderLibrary();
   if(name==='sentences') renderSentencePacks();
   if(name==='reading') renderReadingLibrary();
@@ -156,8 +159,22 @@ function renderHome(){
   const root=document.querySelector('#recent-lists'), lists=data.lists.slice(0,6);
   root.innerHTML=lists.length?lists.map(cardHTML).join(''):emptyHTML(); bindCards(root);
   root.querySelector('[data-empty-create]')?.addEventListener('click',newList);
+  const words=data.lists.flatMap(list=>list.words||[]),due=words.filter(word=>word.reviewed&&(!word.due||word.due<=dayKey())).length,hard=weeklyDifficultWords().length,newWords=words.filter(word=>!word.reviewed).length;document.querySelector('#daily-lesson-copy').textContent=due?`Vandaag: ${due} herhalingen, nieuwe context en een korte challenge.`:hard?`Vandaag pakken we ${hard} moeilijke woorden aan en sluiten we af met context.`:`Vandaag ontdek je ${Math.min(8,newWords)} nieuwe woorden en oefen je ze meteen actief.`;
   updateStats();
 }
+const storyChapters=[
+  {title:'Fundament',subtitle:'Herkennen, begrijpen en zelf antwoorden',lessons:[['Eerste woorden','words'],['Zinnen begrijpen','sentences'],['Slim herhalen','review'],['Betekenis in context','words'],['Checkpoint 01','review']]},
+  {title:'Dagelijks leven',subtitle:'Van losse woorden naar bruikbare taal',lessons:[['Dagelijkse routine','sentences'],['Luisteren & herkennen','words'],['Zelf produceren','words'],['Lees je eerste tekst','reading'],['Checkpoint 02','review']]},
+  {title:'Echte taal',subtitle:'Leren met verhalen, artikelen en gesprekken',lessons:[['Lezen in context','reading'],['Moeilijke woorden','hardWords'],['Zinnen herstellen','hardSentences'],['Vrije training','practice'],['Fluency challenge','review']]}
+];
+function renderRoadmap(){
+  const completed=Math.min(storyChapters.reduce((sum,chapter)=>sum+chapter.lessons.length,0),Math.floor((data.answered||0)/10)),level=Math.floor(completed/5)+1;document.querySelector('#roadmap-level').textContent=`LEVEL ${level}`;document.querySelector('#roadmap-summary').textContent=`${completed} lessen voltooid · ${data.answered||0} vragen beantwoord`;
+  let position=0;document.querySelector('#story-roadmap').innerHTML=storyChapters.map((chapter,chapterIndex)=>`<section class="story-chapter"><header><span>${String(chapterIndex+1).padStart(2,'0')}</span><div><h2>${chapter.title}</h2><p>${chapter.subtitle}</p></div></header><div class="lesson-path">${chapter.lessons.map(([name,action],lessonIndex)=>{const index=position++,state=index<completed?'done':index===completed?'current':'locked';return`<button class="lesson-node ${state}" data-story-action="${action}" ${state==='locked'?'disabled':''}><span>${state==='done'?'✓':state==='locked'?'🔒':index+1}</span><div><small>LES ${lessonIndex+1}</small><b>${name}</b></div><i>${state==='done'?'VOLTOOID':state==='current'?'START →':'VERGRENDELD'}</i></button>`;}).join('')}</div></section>`).join('');
+  document.querySelectorAll('[data-story-action]:not(:disabled)').forEach(button=>button.addEventListener('click',()=>startStoryAction(button.dataset.storyAction)));
+}
+function startStoryAction(action){if(action==='words')return route('library');if(action==='sentences')return route('sentences');if(action==='reading')return route('reading');if(action==='practice')return route('practice');if(action==='hardWords')return startWeeklyWordReview();if(action==='hardSentences')return startWeeklySentenceReview();startDailyReview();}
+function renderPracticeHub(){const words=weeklyDifficultWords().length,sentences=weeklyDifficultSentences().length;const wordButton=document.querySelector('#practice-hard-words'),sentenceButton=document.querySelector('#practice-hard-sentences');wordButton.disabled=!words;sentenceButton.disabled=!sentences;wordButton.querySelector('p').textContent=words?`Versla ${words} moeilijke ${words===1?'woord':'woorden'} uit deze week.`:'Nog geen moeilijke woorden deze week.';sentenceButton.querySelector('p').textContent=sentences?`Herbouw ${sentences} moeilijke ${sentences===1?'zin':'zinnen'} uit deze week.`:'Nog geen moeilijke zinnen deze week.';}
+function renderCollectionHub(){document.querySelector('#collection-list-count').textContent=data.lists.length;document.querySelector('#collection-sentence-count').textContent=data.sentencePacks.length;document.querySelector('#collection-reading-count').textContent=(data.readingItems||[]).length;}
 function renderLibrary(){
   const query=normalize(document.querySelector('#list-search').value);
   const lists=data.lists.filter(l=>normalize(`${l.title} ${l.from} ${l.to}`).includes(query));
@@ -400,10 +417,11 @@ function finishQuiz(){
 }
 
 document.querySelectorAll('[data-route]').forEach(b=>b.addEventListener('click',()=>route(b.dataset.route)));
-document.querySelector('#hero-create').addEventListener('click',newList);document.querySelector('#daily-review').addEventListener('click',startDailyReview); document.querySelector('#library-create').addEventListener('click',newList); document.querySelector('#home-see-all').addEventListener('click',()=>route('library'));
+document.querySelector('#hero-create')?.addEventListener('click',newList);document.querySelector('#daily-review').addEventListener('click',startDailyReview); document.querySelector('#library-create').addEventListener('click',newList); document.querySelector('#home-see-all').addEventListener('click',()=>route('collection'));
 document.querySelector('#list-search').addEventListener('input',renderLibrary); document.querySelector('#edit-list').addEventListener('click',editList); document.querySelector('#delete-list').addEventListener('click',deleteList);
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startQuiz(b.dataset.mode))); document.querySelector('#quiz-close').addEventListener('click',()=>quiz?.weeklyReview?route('statistics'):quiz?.kind==='sentence'?openSentencePack(quiz.pack.id):quiz?.kind==='daily'?route('home'):openList(quiz.list.id));
 document.querySelector('#review-week-words').addEventListener('click',startWeeklyWordReview);document.querySelector('#review-week-sentences').addEventListener('click',startWeeklySentenceReview);
+document.querySelector('#practice-daily-review').addEventListener('click',startDailyReview);document.querySelector('#practice-hard-words').addEventListener('click',startWeeklyWordReview);document.querySelector('#practice-hard-sentences').addEventListener('click',startWeeklySentenceReview);
 document.querySelector('#reader-import-url').addEventListener('click',importReaderUrl);
 document.querySelector('#reader-form').addEventListener('submit',event=>{event.preventDefault();const item={id:`reading-${Date.now()}`,title:document.querySelector('#reader-title').value.trim(),sourceLanguage:document.querySelector('#reader-source-language').value,targetLanguage:document.querySelector('#reader-target-language').value,url:document.querySelector('#reader-url').value.trim(),text:document.querySelector('#reader-text').value.trim(),clickedWords:[],createdAt:Date.now(),updatedAt:Date.now()};data.readingItems.unshift(item);saveData();event.target.reset();document.querySelector('#reader-import-status').textContent='Bij video of audio kun je hieronder ook zelf het transcript plakken.';openReading(item.id);showToast('Tekst opgeslagen in je bibliotheek');});
 document.querySelector('#reader-save-word').addEventListener('click',saveReaderWord);
