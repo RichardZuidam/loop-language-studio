@@ -105,11 +105,11 @@ function listById(id){ return data.lists.find(list => list.id === id); }
 function showToast(message){ const toast=document.querySelector('#toast'); toast.textContent=message; toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>toast.classList.remove('show'),2200); }
 
 function route(name){
+  const requestedRoute=name; if(name==='roadmap') name='home';
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelector(`#${name}-view`)?.classList.add('active');
   const navName=['library','sentences','reading','reader-detail','detail','sentence-detail','editor','sentence-editor'].includes(name)?'collection':name==='quiz'?'practice':name;document.querySelectorAll('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.route===navName));
   if(name==='home') renderHome();
-  if(name==='roadmap') renderRoadmap();
   if(name==='practice') renderPracticeHub();
   if(name==='collection') renderCollectionHub();
   if(name==='library') renderLibrary();
@@ -117,6 +117,7 @@ function route(name){
   if(name==='reading') renderReadingLibrary();
   if(name==='statistics') renderStatistics();
   window.scrollTo(0,0); document.querySelector('#app').focus({preventScroll:true});
+  if(requestedRoute==='roadmap') requestAnimationFrame(()=>document.querySelector('#home-roadmap')?.scrollIntoView({behavior:'smooth'}));
 }
 function dateLabel(key){return new Intl.DateTimeFormat('nl-NL',{weekday:'short'}).format(new Date(`${key}T12:00:00`)).replace('.','');}
 function currentStreak(){let streak=0,date=new Date();while((data.activity?.[dayKey(date)]||0)>0){streak++;date.setDate(date.getDate()-1);}return streak;}
@@ -142,8 +143,8 @@ function renderStatistics(){
 }
 function updateStats(){
   document.querySelector('#total-score').textContent=data.score;
-  document.querySelector('#today-xp').textContent=`${data.todayXp}/${data.dailyGoal||50} XP`;
-  document.querySelector('#best-streak').textContent=data.bestStreak;
+  document.querySelector('#today-xp')&&(document.querySelector('#today-xp').textContent=`${data.todayXp}/${data.dailyGoal||50} XP vandaag`);
+  document.querySelector('#best-streak')&&(document.querySelector('#best-streak').textContent=data.bestStreak);
   const words=data.lists.flatMap(list=>list.words),today=new Date().toISOString().slice(0,10);
   const due=words.filter(word=>word.reviewed&&(!word.due||word.due<=today)).length;
   document.querySelector('#due-count')&&(document.querySelector('#due-count').textContent=due);
@@ -157,11 +158,8 @@ function cardHTML(list,index){
 function bindCards(root){ root.querySelectorAll('[data-list-id]').forEach(card=>card.addEventListener('click',()=>openList(card.dataset.listId))); }
 function emptyHTML(){ return `<div class="empty"><h3>Nog geen lijsten</h3><p>Maak je eerste woordenlijst en begin met leren.</p><button class="btn btn-accent" data-empty-create>Nieuwe lijst</button></div>`; }
 function renderHome(){
-  const root=document.querySelector('#recent-lists'), lists=data.lists.slice(0,6);
-  root.innerHTML=lists.length?lists.map(cardHTML).join(''):emptyHTML(); bindCards(root);
-  root.querySelector('[data-empty-create]')?.addEventListener('click',newList);
-  const lesson=currentStoryLesson(),chapter=storyChapters.find(item=>item.lessons.some(entry=>entry.id===lesson.id));document.querySelector('#daily-lesson-copy').textContent=`${chapter.title}: ${lesson.title}. Ongeveer 10 vragen met uitleg en directe feedback.`;
-  updateStats();
+  const lesson=currentStoryLesson(),chapter=storyChapters.find(item=>item.lessons.some(entry=>entry.id===lesson.id));document.querySelector('#daily-lesson-title').textContent=lesson.title;document.querySelector('#daily-lesson-copy').textContent=`${chapter.title} · ${chapter.subtitle}`;
+  updateStats();renderRoadmap();
 }
 const storyChapters=[
   ['Klanken & uitspraak','Hoor en herken de bouwstenen van het Vietnamees',['Eerste kernwoorden','Tonen leren zien','Klanken herkennen','Checkpoint: klanken']],
@@ -439,7 +437,7 @@ function finishQuiz(){
 }
 
 document.querySelectorAll('[data-route]').forEach(b=>b.addEventListener('click',()=>route(b.dataset.route)));
-document.querySelector('#hero-create')?.addEventListener('click',newList);document.querySelector('#daily-review').addEventListener('click',()=>startStoryLesson()); document.querySelector('#library-create').addEventListener('click',newList); document.querySelector('#home-see-all').addEventListener('click',()=>route('collection'));
+document.querySelector('#hero-create')?.addEventListener('click',newList);document.querySelector('#daily-review').addEventListener('click',()=>startStoryLesson()); document.querySelector('#library-create').addEventListener('click',newList); document.querySelector('#home-see-all')?.addEventListener('click',()=>route('collection'));
 document.querySelector('#list-search').addEventListener('input',renderLibrary); document.querySelector('#edit-list').addEventListener('click',editList); document.querySelector('#delete-list').addEventListener('click',deleteList);
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startQuiz(b.dataset.mode))); document.querySelector('#quiz-close').addEventListener('click',()=>quiz?.storyLessonId?route('roadmap'):quiz?.weeklyReview?route('statistics'):quiz?.kind==='sentence'?openSentencePack(quiz.pack.id):quiz?.kind==='daily'?route('home'):openList(quiz.list.id));
 document.querySelector('#review-week-words').addEventListener('click',startWeeklyWordReview);document.querySelector('#review-week-sentences').addEventListener('click',startWeeklySentenceReview);
