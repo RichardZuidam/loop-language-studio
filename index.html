@@ -7,7 +7,7 @@
   <meta name="description" content="Persoonlijke language learning studio voor woorden, zinnen en uitspraak." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="styles.css?v=33" />
+  <link rel="stylesheet" href="styles.css?v=34" />
   <title>LOOP — Language Studio</title>
 </head>
 <body>
@@ -30,42 +30,23 @@
 
   <main id="app" tabindex="-1">
     <section id="home-view" class="view active">
-      <div class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">JOUW LES VAN VANDAAG</p>
-          <h1>READY.<br><em>SET. LOOP.</em></h1>
-          <p class="intro" id="daily-lesson-copy">Een slimme mix van nieuwe stof, context en herhaling.</p>
-          <div class="hero-actions"><button class="btn btn-accent" id="daily-review">Start dagelijkse les <span>→</span></button><button class="btn btn-ghost" data-route="practice">Vrij oefenen <span>↗</span></button></div>
-        </div>
-        <aside class="hero-card">
-          <div class="motif"><span>L</span><span>O</span><span>O</span><span>P</span></div>
-          <div class="hero-stat"><span>Vandaag</span><strong id="today-xp">0 XP</strong></div>
-          <div class="hero-stat"><span>Beste reeks</span><strong id="best-streak">0</strong></div>
-        </aside>
-      </div>
-
-      <section class="today-lesson-strip"><article><span>01</span><div><b>Opwarmen</b><small>Herhaal wat bijna wegzakt</small></div></article><article><span>02</span><div><b>Nieuwe stap</b><small>Woorden of zinnen in context</small></div></article><article><span>03</span><div><b>Challenge</b><small>Zelf produceren en fouten herstellen</small></div></article><article class="lesson-reward"><span>★</span><div><b>Dagbeloning</b><small>XP en voortgang op je roadmap</small></div></article></section>
-      <section class="learning-dashboard"><article><span>VANDAAG TE DOEN</span><strong id="due-count">0</strong></article><article><span>BEHEERST</span><strong id="mastered-count">0</strong></article><article><span>OOIT GEOEFEND</span><strong id="learning-count">0</strong></article></section>
-
-      <section class="section-block">
-        <div class="section-heading"><div><p class="eyebrow">CONTINUE LEARNING</p><h2>Jouw lijsten</h2></div><button class="text-button" id="home-see-all">Bekijk alles →</button></div>
-        <div id="recent-lists" class="list-grid"></div>
-      </section>
-
-      <section class="roadmap">
-        <p class="eyebrow">THE ROAD AHEAD</p>
-        <h2>Dit is pas<br>het begin.</h2>
-        <div class="roadmap-grid">
-          <article class="roadmap-item live"><span>01</span><h3>Woorden</h3><p>Lijsten, flashcards en overhoringen.</p><b>LIVE</b></article>
-          <article class="roadmap-item live"><span>02</span><h3>Zinnen</h3><p>Zinsbouw en context leren begrijpen.</p><b>LIVE</b></article>
-          <article class="roadmap-item"><span>03</span><h3>Spraak</h3><p>Luisteren, inspreken en uitspraak trainen.</p><b>SOON</b></article>
+      <section class="home-daily">
+        <p class="eyebrow">JOUW LES VAN VANDAAG</p>
+        <div class="daily-lesson-card">
+          <div class="daily-lesson-number" aria-hidden="true">01</div>
+          <div class="daily-lesson-main">
+            <span class="daily-label">VOLGENDE STAP</span>
+            <h1 id="daily-lesson-title">Eerste kernwoorden</h1>
+            <p id="daily-lesson-copy">Een slimme mix van nieuwe stof, context en herhaling.</p>
+            <div class="daily-meta"><span>± 10 vragen</span><span id="today-xp">0/50 XP vandaag</span></div>
+          </div>
+          <button class="btn btn-accent daily-start" id="daily-review">Start les <span>→</span></button>
         </div>
       </section>
-    </section>
-
-    <section id="roadmap-view" class="view roadmap-view">
-      <div class="page-head"><div><p class="eyebrow">STORY MODE</p><h1>ROAD TO<br><em>FLUENCY.</em></h1><p class="intro">Een duidelijke route met echte diepgang. Voltooi lessen, checkpoints en context-challenges.</p></div><div class="roadmap-overview"><strong id="roadmap-level">LEVEL 1</strong><span id="roadmap-summary">0 lessen voltooid</span></div></div>
-      <div id="story-roadmap" class="story-roadmap"></div>
+      <section class="home-roadmap" id="home-roadmap">
+        <div class="roadmap-heading"><div><p class="eyebrow">ROAD TO FLUENCY</p><h2>Jouw roadmap.</h2><p>Volg de route stap voor stap. Voltooide lessen kun je altijd opnieuw spelen.</p></div><div class="roadmap-overview"><strong id="roadmap-level">LEVEL 1</strong><span id="roadmap-summary">0 lessen voltooid</span></div></div>
+        <div id="story-roadmap" class="story-roadmap"></div>
+      </section>
     </section>
 
     <section id="practice-view" class="view hub-view">
