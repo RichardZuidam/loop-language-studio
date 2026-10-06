@@ -176,6 +176,7 @@ function bindCards(root){ root.querySelectorAll('[data-list-id]').forEach(card=>
 function emptyHTML(){ return `<div class="empty"><h3>Nog geen lijsten</h3><p>Maak je eerste woordenlijst en begin met leren.</p><button class="btn btn-accent" data-empty-create>Nieuwe lijst</button></div>`; }
 function renderHome(){
   document.querySelector('#course-dedication')?.classList.toggle('hidden',data.course?.id!=='en-ru');
+  document.querySelector('#amina-love')?.classList.toggle('hidden',data.course?.id!=='en-ru');
   const lesson=currentStoryLesson(),chapter=activeStoryChapters().find(item=>item.lessons.some(entry=>entry.id===lesson.id));document.querySelector('#daily-lesson-title').textContent=lesson.title;document.querySelector('#daily-lesson-copy').textContent=`${chapter.title} · ${chapter.subtitle}`;
   updateStats();renderRoadmap();
 }
