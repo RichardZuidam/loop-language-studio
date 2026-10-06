@@ -45,3 +45,21 @@ window.EN_RU_FREQUENCY_LISTS = [
   ]}
 ].map((list,index)=>({...list,id:`en-ru-frequency-${index+1}`,from:'Английский',to:'Русский',source:'General Service List and BNC spoken-frequency references',words:list.words.map(([front,back])=>({front,back}))}));
 
+window.EN_RU_SENTENCE_PACKS = [
+  {id:'en-ru-sentences-1',title:'Знакомство и общение',description:'Приветствия, знакомство и короткие разговоры.',sentences:[
+    ['Hi, how are you?','Привет, как ты?'],['I’m fine, thank you.','У меня всё хорошо, спасибо.'],['What’s your name?','Как тебя зовут?'],['My name is Amina.','Меня зовут Амина.'],['Nice to meet you.','Приятно познакомиться.'],['Where are you from?','Откуда ты?'],['I’m from Russia.','Я из России.'],['Do you speak English?','Ты говоришь по-английски?'],['I’m still learning.','Я всё ещё учусь.'],['See you later.','Увидимся позже.']
+  ]},
+  {id:'en-ru-sentences-2',title:'Повседневная жизнь',description:'Полезные фразы на каждый день.',sentences:[
+    ['What time is it?','Который час?'],['I’m getting ready.','Я собираюсь.'],['I have to go now.','Мне нужно идти.'],['I’ll be back soon.','Я скоро вернусь.'],['What are you doing?','Что ты делаешь?'],['I’m at home.','Я дома.'],['I’m a little tired.','Я немного устала.'],['Let’s eat something.','Давай что-нибудь поедим.'],['I don’t have time.','У меня нет времени.'],['Have a good day.','Хорошего дня.']
+  ]},
+  {id:'en-ru-sentences-3',title:'Поездки и места',description:'Дорога, транспорт и просьбы о помощи.',sentences:[
+    ['Where is the station?','Где находится вокзал?'],['How can I get there?','Как мне туда добраться?'],['Is it far from here?','Это далеко отсюда?'],['I need a taxi.','Мне нужно такси.'],['Please stop here.','Пожалуйста, остановитесь здесь.'],['How much does it cost?','Сколько это стоит?'],['I’d like a ticket, please.','Я хотела бы билет, пожалуйста.'],['Which way should I go?','В какую сторону мне идти?'],['Can you help me?','Вы можете мне помочь?'],['I think we’re lost.','Кажется, мы заблудились.']
+  ]},
+  {id:'en-ru-sentences-4',title:'Работа и учёба',description:'Задачи, вопросы и совместная работа.',sentences:[
+    ['I’m working on it.','Я над этим работаю.'],['Could you explain it again?','Не могли бы вы объяснить это ещё раз?'],['I don’t understand this part.','Я не понимаю эту часть.'],['What does this word mean?','Что означает это слово?'],['Can you send it to me?','Можете отправить это мне?'],['I’ll finish it today.','Я закончу это сегодня.'],['Let’s talk about it later.','Давай поговорим об этом позже.'],['That’s a good idea.','Это хорошая идея.'],['I agree with you.','Я с тобой согласна.'],['I need more practice.','Мне нужно больше практики.']
+  ]},
+  {id:'en-ru-sentences-5',title:'Мнения и трудности',description:'Объясняй мысли, чувства и проблемы.',sentences:[
+    ['I think it’s important.','Я думаю, что это важно.'],['I’m not sure about that.','Я не уверена насчёт этого.'],['In my opinion, it’s better.','По-моему, так лучше.'],['It depends on the situation.','Это зависит от ситуации.'],['What do you think?','Что ты думаешь?'],['I have a problem.','У меня проблема.'],['Something went wrong.','Что-то пошло не так.'],['I don’t know what to do.','Я не знаю, что делать.'],['Don’t worry about it.','Не переживай об этом.'],['Everything will be okay.','Всё будет хорошо.']
+  ]}
+].map(pack=>({...pack,lastScore:null,sentences:pack.sentences.map(([vi,nl])=>({vi,nl,literal:'',note:'',mastery:0}))}));
+
