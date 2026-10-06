@@ -11,6 +11,7 @@ const courseWordSeed=frequencyLists.flatMap(list=>list.words).map(word=>structur
 const starterSentencePacks = (window.LOOP_SENTENCE_PACKS || []).map(pack => ({
   ...pack, lastScore: null, sentences: pack.sentences.map(([vi,nl,literal,note])=>({vi,nl,literal,note,mastery:0}))
 }));
+const englishRussianSentencePacks=(window.EN_RU_SENTENCE_PACKS||[]).map(pack=>structuredClone(pack));
 const seed = {
   score: 0, bestStreak: 0, todayXp: 0, xpDate: new Date().toISOString().slice(0,10), dailyGoal: 50,
   activity: {}, activityMinutes:{}, studyMinutes:0, answered:0, skillStats:{}, readingItems:[],course:{id:'vi-nl',completedLessons:[],words:structuredClone(courseWordSeed)},
@@ -50,6 +51,8 @@ function applyAminaCurriculum(target){
   const coreLists=englishRussianLists.map(template=>{const old=existingLists.find(list=>list.id===template.id);return {...structuredClone(template),createdAt:old?.createdAt||Date.now(),lastScore:old?.lastScore??null,words:mergeWords(template.words,old?.words)};});
   const oldCourseWords=target.course?.words||[];
   target.lists=[...coreLists,...existingLists.filter(list=>!coreIds.has(list.id))];
+  const existingPacks=Array.isArray(target.sentencePacks)?target.sentencePacks:[];
+  target.sentencePacks=[...englishRussianSentencePacks.map(template=>{const old=existingPacks.find(pack=>pack.id===template.id);return {...structuredClone(template),lastScore:old?.lastScore??null,sentences:template.sentences.map(sentence=>({...structuredClone(sentence),...(old?.sentences||[]).find(item=>item.vi===sentence.vi),vi:sentence.vi,nl:sentence.nl}))};}),...existingPacks.filter(pack=>pack.id.startsWith('sent-'))];
   target.course={id:'en-ru',completedLessons:target.course?.id==='en-ru'?(target.course.completedLessons||[]):[],words:mergeWords(coreLists.flatMap(list=>list.words),oldCourseWords)};
   return target;
 }
