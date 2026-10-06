@@ -1,4 +1,6 @@
-const STORAGE_KEY = 'loop-language-studio-v1';
+const pageParams = new URLSearchParams(location.search);
+const IS_AMINA_GUEST = pageParams.get('course') === 'amina';
+const STORAGE_KEY = IS_AMINA_GUEST ? 'loop-amina-english-v1' : 'loop-language-studio-v1';
 const frequencyLists = (window.VI_FREQUENCY_LISTS || []).map((list, index) => ({
   id: `vi-frequency-${index + 1}`, title: list.title, from: 'Vietnamees', to: 'Nederlands',
   createdAt: Date.now() - index, lastScore: null,
@@ -42,17 +44,26 @@ const hadLegacyData = Boolean(localStorage.getItem(STORAGE_KEY));
 function freshAccountData(){
   return {score:0,bestStreak:0,todayXp:0,xpDate:new Date().toISOString().slice(0,10),dailyGoal:50,activity:{},activityMinutes:{},studyMinutes:0,answered:0,skillStats:{},readingItems:[],course:{id:'vi-nl',completedLessons:[],words:structuredClone(courseWordSeed)},sentencePacks:[],lists:[structuredClone(seed.lists[0])]};
 }
+function applyAminaCurriculum(target){
+  const existingLists=Array.isArray(target.lists)?target.lists:[],coreIds=new Set(englishRussianLists.map(list=>list.id));
+  const mergeWords=(templateWords,oldWords=[])=>templateWords.map(word=>({...structuredClone(word),...(oldWords.find(old=>old.front===word.front)||{}),front:word.front,back:word.back}));
+  const coreLists=englishRussianLists.map(template=>{const old=existingLists.find(list=>list.id===template.id);return {...structuredClone(template),createdAt:old?.createdAt||Date.now(),lastScore:old?.lastScore??null,words:mergeWords(template.words,old?.words)};});
+  const oldCourseWords=target.course?.words||[];
+  target.lists=[...coreLists,...existingLists.filter(list=>!coreIds.has(list.id))];
+  target.course={id:'en-ru',completedLessons:target.course?.id==='en-ru'?(target.course.completedLessons||[]):[],words:mergeWords(coreLists.flatMap(list=>list.words),oldCourseWords)};
+  return target;
+}
 let data = loadData();
 let activeListId = null, editingId = null, quiz = null, activeSentencePackId = null, editingSentencePackId = null, activeReadingId=null, selectedReaderWord=null, cloudUser = null, cloudSaveTimer = null, pendingPracticeMode = null;
 
 function loadData(){
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if(!stored) return structuredClone(seed);
+    if(!stored) return IS_AMINA_GUEST?applyAminaCurriculum(freshAccountData()):structuredClone(seed);
     if(!Array.isArray(stored.sentencePacks)) stored.sentencePacks=structuredClone(starterSentencePacks);
     starterSentencePacks.forEach(pack=>{if(!stored.sentencePacks.some(item=>item.id===pack.id))stored.sentencePacks.push(structuredClone(pack));});
-    prepareData(stored);return stored;
-  } catch { return structuredClone(seed); }
+    prepareData(stored);return IS_AMINA_GUEST?applyAminaCurriculum(stored):stored;
+  } catch { return IS_AMINA_GUEST?applyAminaCurriculum(freshAccountData()):structuredClone(seed); }
 }
 function dayKey(date=new Date()){return date.toISOString().slice(0,10);}
 function isMistakeFromLastWeek(item){const cutoff=new Date();cutoff.setDate(cutoff.getDate()-6);return (item.mistakeDates||[]).some(date=>date>=dayKey(cutoff));}
@@ -522,7 +533,10 @@ document.querySelector('#account-close').addEventListener('click',()=>document.q
 document.querySelector('#account-button').addEventListener('click',()=>{if(cloudUser){document.querySelector('#account-email').textContent=cloudUser.email;document.querySelector('#account-modal').classList.remove('hidden');}else authGate.classList.remove('hidden');});
 document.querySelector('#logout-button').addEventListener('click',async()=>{await supabaseClient.auth.signOut();cloudUser=null;document.querySelector('#account-button').textContent='Inloggen';data=freshAccountData();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();document.querySelector('#account-modal').classList.add('hidden');showToast('Je bent uitgelogd');});
 document.querySelector('#export-data').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`loop-export-${new Date().toISOString().slice(0,10)}.json`;link.click();URL.revokeObjectURL(link.href);});
-if(supabaseClient)supabaseClient.auth.getSession().then(({data:{session}})=>{if(session)activateAccount(session.user);else if(location.search.includes('import=')||location.hash.includes('import=')){authMessage.textContent='Log in om deze woordenlijst aan je account toe te voegen.';authGate.classList.remove('hidden');}});else authMessage.textContent='De accountverbinding kon niet worden geladen.';
+if(IS_AMINA_GUEST){
+  const accountButton=document.querySelector('#account-button');accountButton.textContent='Без входа';accountButton.disabled=true;accountButton.title='Прогресс сохраняется на этом устройстве';
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+}else if(supabaseClient)supabaseClient.auth.getSession().then(({data:{session}})=>{if(session)activateAccount(session.user);else if(location.search.includes('import=')||location.hash.includes('import=')){authMessage.textContent='Log in om deze woordenlijst aan je account toe te voegen.';authGate.classList.remove('hidden');}});else authMessage.textContent='De accountverbinding kon niet worden geladen.';
 updateStats(); renderHome();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
 
