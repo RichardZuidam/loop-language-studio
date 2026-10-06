@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171714">
+  <title>LOOP — Voorbeeld cursus Amina</title>
+  <link rel="stylesheet" href="styles.css?v=34">
+  <style>
+    .preview-head{padding:70px clamp(18px,6vw,80px);border-bottom:1px solid var(--line)}
+    .preview-head h1{font-size:clamp(48px,9vw,112px);line-height:.88;letter-spacing:-.07em;margin:18px 0}
+    .preview-head p{max-width:700px;color:var(--muted);line-height:1.6}
+    .preview-note{background:var(--accent);color:var(--ink);padding:14px clamp(18px,6vw,80px);font:600 10px 'DM Mono';text-transform:uppercase}
+    .preview-road{padding:70px clamp(18px,6vw,80px)}
+    .preview-road h2,.preview-lists h2{font-size:clamp(38px,6vw,72px);margin:8px 0 32px}
+    .preview-chapters{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:1000px}
+    .preview-chapters article{border:1px solid var(--line);padding:22px;background:var(--white)}
+    .preview-chapters span{font:10px 'DM Mono';color:var(--muted)}
+    .preview-chapters h3{font-size:25px;margin:28px 0 6px}.preview-chapters p{color:var(--muted);font-size:13px}
+    .preview-lists{padding:70px clamp(18px,6vw,80px);background:var(--ink);color:var(--paper)}
+    .preview-list-grid{display:grid;gap:12px;max-width:1100px}.preview-list{border:1px solid #555;background:#1d1d1a}
+    .preview-list summary{cursor:pointer;padding:22px;display:flex;justify-content:space-between;gap:20px;font-weight:700}.preview-list summary small{font:10px 'DM Mono';color:#aaa}
+    .preview-words{display:grid;grid-template-columns:repeat(2,1fr);border-top:1px solid #555}.preview-words div{padding:12px 18px;border-bottom:1px solid #333;display:grid;grid-template-columns:1fr 1.5fr;gap:12px}.preview-words b{color:var(--accent)}.preview-words span{color:#ccc}
+    .preview-back{display:inline-flex;margin-top:40px;color:var(--paper);border:1px solid #777;padding:14px 18px;text-transform:uppercase;font:10px 'DM Mono'}
+    @media(max-width:680px){.preview-chapters,.preview-words{grid-template-columns:1fr}.preview-head{padding-top:48px}.preview-list summary{flex-direction:column}.preview-words div{font-size:14px}}
+  </style>
+</head>
+<body>
+  <div class="preview-note">Alleen voorbeeld · er wordt niets aan je account toegevoegd</div>
+  <header class="preview-head"><p class="eyebrow">LOOP / CURSUSVOORSTEL</p><h1>AMINA LEERT<br><em>ENGELS.</em></h1><p>Een Russischtalige route voor iemand die al enige basiskennis heeft. De cursus richt zich op snel beter spreken, schrijven en lezen met veelvoorkomende woorden en praktische situaties.</p></header>
+  <main>
+    <section class="preview-road"><p class="eyebrow">ROAD TO FLUENCY</p><h2>De dagelijkse roadmap</h2><div class="preview-chapters" id="preview-chapters"></div></section>
+    <section class="preview-lists"><p class="eyebrow">WOORDEN OEFENEN</p><h2>Top 300 Engels</h2><p>Open een lijst om alle Engelse woorden met Russische betekenis te bekijken.</p><div class="preview-list-grid" id="preview-lists"></div><a class="preview-back" href="index.html">← Terug naar LOOP</a></section>
+  </main>
+  <script src="english-russian-data.js?v=35"></script>
+  <script>
+    const chapters=['Zelfverzekerd communiceren','Werk en studie','Meningen en argumenten','Verhalen en ervaringen','Plannen en beslissingen','Lezen zonder vertalen','Natuurlijke woordcombinaties','Nauwkeurig schrijven','Levend Engels','Zelfstandig niveau'];
+    const descriptions=['Natuurlijker spreken in alledaagse situaties.','Taken, meetings en leren bespreken.','Ideeën helder uitleggen en onderbouwen.','Ervaringen logisch en samenhangend vertellen.','Toekomst, mogelijkheden en gevolgen bespreken.','Hoofdgedachte en details uit teksten halen.','Woorden leren in vaste, natuurlijke combinaties.','Duidelijke alinea’s schrijven en fouten verbeteren.','Normale spreektaal sneller begrijpen.','Lezen, schrijven en spreken combineren.'];
+    document.querySelector('#preview-chapters').innerHTML=chapters.map((title,i)=>`<article><span>${String(i+1).padStart(2,'0')} / HOOFDSTUK</span><h3>${title}</h3><p>${descriptions[i]}</p></article>`).join('');
+    document.querySelector('#preview-lists').innerHTML=(window.EN_RU_FREQUENCY_LISTS||[]).map((list,i)=>`<details class="preview-list" ${i===0?'open':''}><summary><span>${String(i*50+1).padStart(3,'0')}–${String((i+1)*50).padStart(3,'0')} · ${list.title}</span><small>50 WOORDEN</small></summary><div class="preview-words">${list.words.map(word=>`<div><b>${word.front}</b><span>${word.back}</span></div>`).join('')}</div></details>`).join('');
+  </script>
+</body>
+</html>
+
