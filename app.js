@@ -4,6 +4,7 @@ const frequencyLists = (window.VI_FREQUENCY_LISTS || []).map((list, index) => ({
   createdAt: Date.now() - index, lastScore: null,
   words: list.words.map(([front, back]) => ({ front, back })), source: list.source
 }));
+const englishRussianLists = (window.EN_RU_FREQUENCY_LISTS || []).map(list=>({...structuredClone(list),createdAt:Date.now(),lastScore:null}));
 const courseWordSeed=frequencyLists.flatMap(list=>list.words).map(word=>structuredClone(word));
 const starterSentencePacks = (window.LOOP_SENTENCE_PACKS || []).map(pack => ({
   ...pack, lastScore: null, sentences: pack.sentences.map(([vi,nl,literal,note])=>({vi,nl,literal,note,mastery:0}))
@@ -22,6 +23,7 @@ const seed = {
   }]
 };
 const importPresets={
+  'ru-en-core-300':{id:'en-ru-frequency-1',type:'course-bundle',courseId:'en-ru',lists:englishRussianLists},
   'nl-es-50':{id:'nl-es-frequency-50',title:'50 meest gebruikte Nederlandse woorden',from:'Nederlands',to:'Spaans',createdAt:Date.now(),lastScore:null,source:'OpenSubtitles Nederlandse frequentielijst',words:[
     ['ik','yo'],['je','tú / te / tu'],['het','el / lo'],['de','el / la'],['dat','eso / que'],['is','es'],['een','un / una'],['niet','no'],['en','y'],['wat','qué / lo que'],
     ['van','de'],['we','nosotros'],['in','en'],['ze','ella / ellos'],['hij','él'],['op','en / sobre'],['te','a / para'],['zijn','ser / estar / su'],['er','allí / hay'],['maar','pero'],
@@ -68,7 +70,11 @@ function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); up
 function importPresetFromUrl(){
   const params=new URLSearchParams(location.search),hashParams=new URLSearchParams(location.hash.replace(/^#/,'')),key=params.get('import')||hashParams.get('import'),preset=importPresets[key];if(!preset)return null;
   if(!Array.isArray(data.lists))data.lists=[];
-  if(!data.lists.some(list=>list.id===preset.id)){data.lists.unshift(structuredClone(preset));showToast('Woordenlijst toegevoegd aan dit account');}
+  if(preset.type==='course-bundle'){
+    preset.lists.slice().reverse().forEach(list=>{if(!data.lists.some(item=>item.id===list.id))data.lists.unshift(structuredClone(list));});
+    data.course={id:preset.courseId,completedLessons:[],words:preset.lists.flatMap(list=>list.words).map(word=>structuredClone(word))};
+    showToast('Английский курс добавлен в аккаунт');
+  }else if(!data.lists.some(list=>list.id===preset.id)){data.lists.unshift(structuredClone(preset));showToast('Woordenlijst toegevoegd aan dit account');}
   params.delete('import');hashParams.delete('import');history.replaceState({},'',`${location.pathname}${params.size?`?${params}`:''}${hashParams.size?`#${hashParams}`:''}`);return preset.id;
 }
 function esc(value=''){ return value.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
@@ -158,10 +164,10 @@ function cardHTML(list,index){
 function bindCards(root){ root.querySelectorAll('[data-list-id]').forEach(card=>card.addEventListener('click',()=>openList(card.dataset.listId))); }
 function emptyHTML(){ return `<div class="empty"><h3>Nog geen lijsten</h3><p>Maak je eerste woordenlijst en begin met leren.</p><button class="btn btn-accent" data-empty-create>Nieuwe lijst</button></div>`; }
 function renderHome(){
-  const lesson=currentStoryLesson(),chapter=storyChapters.find(item=>item.lessons.some(entry=>entry.id===lesson.id));document.querySelector('#daily-lesson-title').textContent=lesson.title;document.querySelector('#daily-lesson-copy').textContent=`${chapter.title} · ${chapter.subtitle}`;
+  const lesson=currentStoryLesson(),chapter=activeStoryChapters().find(item=>item.lessons.some(entry=>entry.id===lesson.id));document.querySelector('#daily-lesson-title').textContent=lesson.title;document.querySelector('#daily-lesson-copy').textContent=`${chapter.title} · ${chapter.subtitle}`;
   updateStats();renderRoadmap();
 }
-const storyChapters=[
+const vietnameseStoryChapters=[
   ['Klanken & uitspraak','Hoor en herken de bouwstenen van het Vietnamees',['Eerste kernwoorden','Tonen leren zien','Klanken herkennen','Checkpoint: klanken']],
   ['Kennismaken','Begroeten, jezelf voorstellen en beleefd reageren',['Hallo & bedankt','Ik en jij','Jezelf voorstellen','Checkpoint: kennismaken']],
   ['Dagelijkse basis','De woorden die je iedere dag nodig hebt',['Veelgebruikte woorden','Vragen stellen','Ja, nee en nuance','Checkpoint: dagelijkse basis']],
@@ -173,17 +179,31 @@ const storyChapters=[
   ['Langere gesprekken','Zinnen verbinden en natuurlijker reageren',['Zinnen verbinden','Een mening geven','Een verhaal volgen','Checkpoint: gesprekken']],
   ['Echte Vietnamese content','Toepassen in teksten, audio en echte situaties',['Lezen in context','Moeilijke taal herstellen','Zelfstandig begrijpen','Final challenge']]
 ].map((chapter,chapterIndex)=>({title:chapter[0],subtitle:chapter[1],lessons:chapter[2].map((title,lessonIndex)=>({id:`vi-nl-${chapterIndex+1}-${lessonIndex+1}`,title,type:lessonIndex===1&&chapterIndex%3===1?'sentences':lessonIndex===2&&chapterIndex%2===0?'context':lessonIndex===3?'review':'words',wordStart:(chapterIndex*24)+(lessonIndex*8)}))}));
-function flatStoryLessons(){return storyChapters.flatMap(chapter=>chapter.lessons);}
+const englishStoryChapters=[
+  ['Уверенное общение','Говори естественнее в ежедневных ситуациях',['Связки в разговоре','Точные вопросы','Быстрые ответы','Проверка: общение']],
+  ['Работа и учёба','Английский для задач, встреч и обучения',['Объяснить задачу','Согласиться и возразить','Сообщить о прогрессе','Проверка: работа']],
+  ['Мнение и аргументы','Выражай идеи ясно и убедительно',['Высказать мнение','Объяснить причину','Сравнить варианты','Проверка: аргументы']],
+  ['Истории и опыт','Рассказывай о прошлом связно и понятно',['Последовательность событий','Прошлый опыт','Результат и вывод','Проверка: истории']],
+  ['Планы и решения','Обсуждай будущее и принимай решения',['Намерения','Возможности','Условия и последствия','Проверка: планы']],
+  ['Чтение без перевода','Понимай главную мысль и детали',['Главная идея','Контекстные подсказки','Незнакомые слова','Проверка: чтение']],
+  ['Естественные сочетания','Учи слова вместе с типичными партнёрами',['Глагол + существительное','Прилагательное + существительное','Фразовые глаголы','Проверка: сочетания']],
+  ['Точность письма','Пиши коротко, понятно и правильно',['Связный абзац','Полезные связки','Редактирование ошибок','Проверка: письмо']],
+  ['Живой английский','Понимай обычную речь и реагируй быстрее',['Сокращённые формы','Разговорные фразы','Смысл по контексту','Проверка: речь']],
+  ['Самостоятельный уровень','Соединяй чтение, письмо и разговор',['Объяснить сложную идею','Обсудить текст','Свободный ответ','Финальное испытание']]
+].map((chapter,chapterIndex)=>({title:chapter[0],subtitle:chapter[1],lessons:chapter[2].map((title,lessonIndex)=>({id:`en-ru-${chapterIndex+1}-${lessonIndex+1}`,title,type:lessonIndex===3?'review':'words',wordStart:(chapterIndex*24)+(lessonIndex*8)}))}));
+function activeStoryChapters(){return data.course?.id==='en-ru'?englishStoryChapters:vietnameseStoryChapters;}
+function activeCourseLanguages(){return data.course?.id==='en-ru'?{from:'Английский',to:'Русский',label:'АНГЛИЙСКИЙ'}:{from:'Vietnamees',to:'Nederlands',label:'VIETNAMEES'};}
+function flatStoryLessons(){return activeStoryChapters().flatMap(chapter=>chapter.lessons);}
 function currentStoryLesson(){return flatStoryLessons().find(lesson=>!data.course.completedLessons.includes(lesson.id))||flatStoryLessons().at(-1);}
 function renderRoadmap(){
-  const completedIds=new Set(data.course.completedLessons),completed=completedIds.size,current=currentStoryLesson(),level=Math.min(10,Math.floor(completed/4)+1);document.querySelector('#roadmap-level').textContent=`LEVEL ${level} · VIETNAMEES`;document.querySelector('#roadmap-summary').textContent=`${completed} van 40 lessen voltooid`;
-  document.querySelector('#story-roadmap').innerHTML=storyChapters.map((chapter,chapterIndex)=>`<section class="story-chapter"><header><span>${String(chapterIndex+1).padStart(2,'0')}</span><div><h2>${chapter.title}</h2><p>${chapter.subtitle}</p></div></header><div class="lesson-path">${chapter.lessons.map((lesson,lessonIndex)=>{const state=completedIds.has(lesson.id)?'done':lesson.id===current.id?'current':'locked';return`<button class="lesson-node ${state}" data-story-lesson="${lesson.id}" ${state==='locked'?'disabled':''}><span>${state==='done'?'✓':state==='locked'?'🔒':lessonIndex+1}</span><div><small>LES ${lessonIndex+1} · ${lesson.type.toUpperCase()}</small><b>${lesson.title}</b></div><i>${state==='done'?'HERHAAL →':state==='current'?'START →':'VERGRENDELD'}</i></button>`;}).join('')}</div></section>`).join('');
+  const chapters=activeStoryChapters(),language=activeCourseLanguages(),completedIds=new Set(data.course.completedLessons),completed=completedIds.size,current=currentStoryLesson(),level=Math.min(10,Math.floor(completed/4)+1);document.querySelector('#roadmap-level').textContent=`LEVEL ${level} · ${language.label}`;document.querySelector('#roadmap-summary').textContent=data.course?.id==='en-ru'?`${completed} из 40 уроков пройдено`:`${completed} van 40 lessen voltooid`;
+  document.querySelector('#story-roadmap').innerHTML=chapters.map((chapter,chapterIndex)=>`<section class="story-chapter"><header><span>${String(chapterIndex+1).padStart(2,'0')}</span><div><h2>${chapter.title}</h2><p>${chapter.subtitle}</p></div></header><div class="lesson-path">${chapter.lessons.map((lesson,lessonIndex)=>{const state=completedIds.has(lesson.id)?'done':lesson.id===current.id?'current':'locked';return`<button class="lesson-node ${state}" data-story-lesson="${lesson.id}" ${state==='locked'?'disabled':''}><span>${state==='done'?'✓':state==='locked'?'🔒':lessonIndex+1}</span><div><small>${data.course?.id==='en-ru'?'УРОК':'LES'} ${lessonIndex+1} · ${lesson.type.toUpperCase()}</small><b>${lesson.title}</b></div><i>${state==='done'?(data.course?.id==='en-ru'?'ПОВТОРИТЬ →':'HERHAAL →'):state==='current'?(data.course?.id==='en-ru'?'НАЧАТЬ →':'START →'):(data.course?.id==='en-ru'?'ЗАКРЫТО':'VERGRENDELD')}</i></button>`;}).join('')}</div></section>`).join('');
   document.querySelectorAll('[data-story-lesson]:not(:disabled)').forEach(button=>button.addEventListener('click',()=>startStoryLesson(button.dataset.storyLesson)));
 }
 function startStoryLesson(id=currentStoryLesson().id){
-  const lesson=flatStoryLessons().find(item=>item.id===id);if(!lesson)return;const courseWords=data.course.words,base=courseWords.slice(lesson.wordStart,lesson.wordStart+10),fallback=courseWords.slice(0,10),words=base.length?base:fallback;
+  const lesson=flatStoryLessons().find(item=>item.id===id);if(!lesson)return;const language=activeCourseLanguages(),courseWords=data.course.words,base=courseWords.slice(lesson.wordStart,lesson.wordStart+10),fallback=courseWords.slice(0,10),words=base.length?base:fallback;
   if(lesson.type==='sentences'){const sentences=data.sentencePacks.flatMap(pack=>pack.sentences||[]),items=sentences.slice((lesson.wordStart/8)%Math.max(1,sentences.length),((lesson.wordStart/8)%Math.max(1,sentences.length))+6);if(items.length){quiz={kind:'sentence',storyLessonId:id,mode:'translate',pack:{id:'story-sentences',title:lesson.title,sentences:items,lastScore:null},items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false,selected:[],mistakes:[],startedAt:Date.now()};route('quiz');renderQuiz();return;}}
-  const contextWords=words.filter(word=>window.LOOP_CONTEXTS?.[word.front]),useContext=lesson.type==='context'&&contextWords.length,items=useContext?contextWords:words;quiz={kind:'story',storyLessonId:id,mode:useContext?'context':'mixed',list:{id:'story-list',title:lesson.title,from:'Vietnamees',to:'Nederlands',words:items,lastScore:null},items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false,showTranslation:true,direction:'forward',mistakes:[],startedAt:Date.now()};route('quiz');renderQuiz();
+  const contextWords=words.filter(word=>window.LOOP_CONTEXTS?.[word.front]),useContext=lesson.type==='context'&&contextWords.length,items=useContext?contextWords:words;quiz={kind:'story',storyLessonId:id,mode:useContext?'context':'mixed',list:{id:'story-list',title:lesson.title,from:language.from,to:language.to,words:items,lastScore:null},items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false,showTranslation:true,direction:'forward',mistakes:[],startedAt:Date.now()};route('quiz');renderQuiz();
 }
 function completeStoryLesson(percent){if(!quiz.storyLessonId||percent<70)return false;if(!data.course.completedLessons.includes(quiz.storyLessonId))data.course.completedLessons.push(quiz.storyLessonId);return true;}
 function renderPracticeHub(){const words=weeklyDifficultWords().length,sentences=weeklyDifficultSentences().length;const wordButton=document.querySelector('#practice-hard-words'),sentenceButton=document.querySelector('#practice-hard-sentences');wordButton.disabled=!words;sentenceButton.disabled=!sentences;wordButton.querySelector('p').textContent=words?`Versla ${words} moeilijke ${words===1?'woord':'woorden'} uit deze week.`:'Nog geen moeilijke woorden deze week.';sentenceButton.querySelector('p').textContent=sentences?`Herbouw ${sentences} moeilijke ${sentences===1?'zin':'zinnen'} uit deze week.`:'Nog geen moeilijke zinnen deze week.';}
