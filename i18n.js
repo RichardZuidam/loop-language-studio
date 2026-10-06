@@ -97,7 +97,7 @@
   Object.assign(translations.ru, {'Vandaag':'Сегодня','Roadmap':'Маршрут','Oefenen':'Практика','Bibliotheek':'Библиотека','Profiel':'Профиль','JOUW LES VAN VANDAAG':'ТВОЙ УРОК НА СЕГОДНЯ','Start dagelijkse les':'Начать урок дня','Vrij oefenen':'Свободная практика','Opwarmen':'Разминка','Herhaal wat bijna wegzakt':'Повтори то, что забывается','Nieuwe stap':'Новый шаг','Woorden of zinnen in context':'Слова и предложения в контексте','Challenge':'Испытание','Zelf produceren en fouten herstellen':'Отвечай самостоятельно и исправляй ошибки','Dagbeloning':'Награда дня','XP en voortgang op je roadmap':'XP и прогресс по маршруту','KIES JE':'ВЫБЕРИ','TRAINING.':'ТРЕНИРОВКУ.','Geen vaste route nodig? Train precies wat jij vandaag wilt verbeteren.':'Не нужен маршрут? Тренируй именно то, что хочешь улучшить сегодня.','Herhalen':'Повторение','Moeilijke zinnen':'Сложные предложения','JOUW':'ТВОЯ','BIBLIOTHEEK.':'БИБЛИОТЕКА.','Alles wat je zelf hebt gemaakt of geïmporteerd, overzichtelijk op één plek.':'Всё созданное и импортированное собрано в одном месте.'});
   const originals = new WeakMap();
   const excluded = '.word-row,.sentence-row,.quiz-word,.sentence-prompt,.context-example,.context-translation,.flash-face strong,input,textarea,option';
-  let language = localStorage.getItem('loop-language') || 'nl';
+  let language = new URLSearchParams(location.search).get('lang') || localStorage.getItem('loop-language') || 'nl';
   const translateValue = value => {
     if(language==='nl') return value;
     const clean=value.trim(), translated=translations[language]?.[clean];
