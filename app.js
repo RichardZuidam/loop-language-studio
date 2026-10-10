@@ -297,8 +297,8 @@ function openList(id){
   document.querySelector('#detail-title').textContent=list.title; document.querySelector('#detail-languages').textContent=`${list.from} → ${list.to}`;
   document.querySelector('#detail-meta').textContent=`${list.words.length} woorden · ${list.lastScore==null?'Nog niet geoefend':`laatste score ${list.lastScore}%`}`;
   document.querySelector('#word-count').textContent=`${list.words.length} entries`;
-  document.querySelector('#word-table').innerHTML=list.words.map((w,i)=>`<div class="word-row"><span>${String(i+1).padStart(2,'0')}</span><b>${esc(w.front)}</b><span class="word-translation">${esc(w.back)}<button type="button" class="inline-speak" data-speak-word="${i}" aria-label="Luister naar uitspraak">◖))</button></span></div>`).join('');
-  document.querySelectorAll('[data-speak-word]').forEach(button=>button.addEventListener('click',()=>{const word=list.words[Number(button.dataset.speakWord)],target=wordSpeechTarget(word,list);speakText(target.text,target.lang);}));route('detail');
+  document.querySelector('#word-table').innerHTML=list.words.map((w,i)=>`<div class="word-row"><span>${String(i+1).padStart(2,'0')}</span><b>${esc(w.front)}</b><span class="word-translation">${esc(w.back)}<span class="speak-actions"><button type="button" class="inline-speak" data-speak-word="${i}" aria-label="Luister naar uitspraak">◖))</button><button type="button" class="inline-speak" data-speak-word="${i}" data-slow="true" aria-label="Luister langzaam">🐢</button></span></span></div>`).join('');
+  document.querySelectorAll('[data-speak-word]').forEach(button=>button.addEventListener('click',()=>{const word=list.words[Number(button.dataset.speakWord)],target=wordSpeechTarget(word,list);speakText(target.text,target.lang,button.dataset.slow==='true');}));route('detail');
 }
 function deleteList(){
   const list=listById(activeListId); if(!list || !confirm(`Verwijder “${list.title}”?`))return;
@@ -320,8 +320,8 @@ function openSentencePack(id){
   document.querySelector('#sentence-detail-title').textContent=pack.title;
   document.querySelector('#sentence-detail-meta').textContent=`${pack.sentences.length} zinnen · ${pack.lastScore==null?'Nog niet geoefend':`laatste score ${pack.lastScore}%`}`;
   document.querySelector('#sentence-count').textContent=`${pack.sentences.length} zinnen`;
-  document.querySelector('#sentence-table').innerHTML=pack.sentences.map((s,i)=>`<article class="sentence-row"><span>${String(i+1).padStart(2,'0')}</span><div><b>${esc(s.vi)}</b><p>${esc(s.nl)}</p>${s.literal?`<small>${esc(s.literal)}</small>`:''}<button type="button" class="inline-speak" data-speak-sentence="${i}" aria-label="Luister naar uitspraak">◖)) Luister</button></div><em>${(s.mastery||0)>=2?'BEHEERST':(s.mastery||0)===1?'LEREN':'NIEUW'}</em></article>`).join('');
-  document.querySelectorAll('[data-speak-sentence]').forEach(button=>button.addEventListener('click',()=>{const target=sentenceSpeechTarget(pack.sentences[Number(button.dataset.speakSentence)]);speakText(target.text,target.lang);}));
+  document.querySelector('#sentence-table').innerHTML=pack.sentences.map((s,i)=>`<article class="sentence-row"><span>${String(i+1).padStart(2,'0')}</span><div><b>${esc(s.vi)}</b><p>${esc(s.nl)}</p>${s.literal?`<small>${esc(s.literal)}</small>`:''}<span class="speak-actions"><button type="button" class="inline-speak" data-speak-sentence="${i}" aria-label="Luister naar uitspraak">◖)) Luister</button><button type="button" class="inline-speak" data-speak-sentence="${i}" data-slow="true" aria-label="Luister langzaam">🐢 Langzaam</button></span></div><em>${(s.mastery||0)>=2?'BEHEERST':(s.mastery||0)===1?'LEREN':'NIEUW'}</em></article>`).join('');
+  document.querySelectorAll('[data-speak-sentence]').forEach(button=>button.addEventListener('click',()=>{const target=sentenceSpeechTarget(pack.sentences[Number(button.dataset.speakSentence)]);speakText(target.text,target.lang,button.dataset.slow==='true');}));
   route('sentence-detail');
 }
 function newSentencePack(){editingSentencePackId=null;document.querySelector('#sentence-editor-heading').textContent='NIEUWE ZINNEN.';document.querySelector('#sentence-form').reset();route('sentence-editor');}
@@ -441,13 +441,13 @@ function wordSpeechTarget(word,list=quiz?.list){
   if(data.course?.id==='ru-nl'){const frontIsRussian=/[А-ЯЁа-яё]/.test(word?.front||'');return{text:frontIsRussian?word?.front:word?.back,lang};}
   return{text:word?.front,lang};
 }
-function speakText(text,lang){
+function speakText(text,lang,slow=false){
   if(!text)return;if(!('speechSynthesis' in window)){showToast('Uitspraak wordt niet ondersteund op dit apparaat');return;}
-  const synth=window.speechSynthesis,utterance=new SpeechSynthesisUtterance(text);utterance.lang=lang;utterance.rate=lang==='ru-RU'?.72:.84;
+  const synth=window.speechSynthesis,utterance=new SpeechSynthesisUtterance(text);utterance.lang=lang;utterance.rate=slow?.48:(lang==='ru-RU'?.72:.84);
   const voices=synth.getVoices(),voice=voices.find(item=>item.lang.toLowerCase()===lang.toLowerCase())||voices.find(item=>item.lang.toLowerCase().startsWith(lang.slice(0,2).toLowerCase()));if(voice)utterance.voice=voice;
   utterance.onerror=()=>showToast('De uitspraak kon niet worden afgespeeld');synth.cancel();synth.resume();synth.speak(utterance);
 }
-function speakCurrent(){if(!quiz)return;const target=quiz.kind==='sentence'?sentenceSpeechTarget(quiz.items[quiz.index]):wordSpeechTarget(quiz.items[quiz.index],quiz.list);speakText(target.text,target.lang);}
+function speakCurrent(slow=false){if(!quiz)return;const target=quiz.kind==='sentence'?sentenceSpeechTarget(quiz.items[quiz.index]):wordSpeechTarget(quiz.items[quiz.index],quiz.list);speakText(target.text,target.lang,slow);}
 function skipCurrent(){if(!quiz||quiz.index>=quiz.items.length)return;const item=quiz.items[quiz.index];addMistake(item);recordSkill(quiz.kind==='sentence'?(quiz.mode==='build'?'sentenceBuild':'sentenceTranslate'):quiz.mode==='context'?'context':questionSides(item).answer===item.front?'production':'recognition',false);quiz.streak=0;nextQuestion();}
 function renderSentenceQuestion(){
   const stage=document.querySelector('#quiz-stage'), sentence=quiz.items[quiz.index];
@@ -528,7 +528,7 @@ document.querySelector('#context-choice-close').addEventListener('click',()=>doc
 document.querySelectorAll('[data-context-translation]').forEach(button=>button.addEventListener('click',()=>{document.querySelector('#context-choice-modal').classList.add('hidden');startQuiz('context',{configured:true,showTranslation:button.dataset.contextTranslation==='yes'});}));
 document.querySelector('#direction-choice-close').addEventListener('click',()=>document.querySelector('#direction-choice-modal').classList.add('hidden'));
 document.querySelectorAll('[data-direction]').forEach(button=>button.addEventListener('click',()=>{document.querySelector('#direction-choice-modal').classList.add('hidden');startQuiz(pendingPracticeMode,{configured:true,direction:button.dataset.direction});}));
-document.querySelector('#quiz-speak').addEventListener('click',speakCurrent);document.querySelector('#quiz-skip').addEventListener('click',skipCurrent);
+document.querySelector('#quiz-speak').addEventListener('click',()=>speakCurrent(false));document.querySelector('#quiz-speak-slow').addEventListener('click',()=>speakCurrent(true));document.querySelector('#quiz-skip').addEventListener('click',skipCurrent);
 document.querySelector('#sentence-create').addEventListener('click',newSentencePack);document.querySelector('#edit-sentence-pack').addEventListener('click',editSentencePack);document.querySelector('#delete-sentence-pack').addEventListener('click',deleteSentencePack);
 document.querySelectorAll('[data-sentence-mode]').forEach(button=>button.addEventListener('click',()=>startSentenceQuiz(button.dataset.sentenceMode)));
 document.querySelector('#swap-languages').addEventListener('click',()=>{const a=document.querySelector('#language-from'),b=document.querySelector('#language-to');[a.value,b.value]=[b.value,a.value];});
