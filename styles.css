@@ -67,5 +67,6 @@ main{max-width:1440px;margin:auto}.view{display:none}.view.active{display:block}
 .roadmap-heading p:last-child{max-width:600px;color:var(--muted)}
 .home-roadmap .story-roadmap{max-width:900px;padding-bottom:20px}
 .dark-theme .daily-lesson-card{background:#1c1c19;border-color:#777}
+.word-translation{display:flex;align-items:center;justify-content:space-between;gap:12px}.inline-speak{width:max-content;border:1px solid var(--line);background:transparent;color:inherit;padding:7px 9px;font:600 10px 'DM Mono';white-space:nowrap}.inline-speak:hover{background:var(--accent);color:var(--ink)}.sentence-row .inline-speak{margin-top:10px}.dark-theme .inline-speak{border-color:#666;color:#f3f1e8}
 @media(max-width:720px){.home-daily{padding-top:38px}.daily-lesson-card{grid-template-columns:54px 1fr;box-shadow:6px 6px 0 var(--accent)}.daily-lesson-main{padding:24px 18px}.daily-lesson-main h1{font-size:38px}.daily-meta{flex-direction:column;gap:8px;margin-top:22px}.daily-start{grid-column:1/-1;min-height:64px;border-width:1px 0 0}.roadmap-heading{align-items:flex-start;flex-direction:column;margin-bottom:38px}.roadmap-heading h2{font-size:52px}.roadmap-overview{width:100%}}
 
