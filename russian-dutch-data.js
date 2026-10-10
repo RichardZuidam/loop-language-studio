@@ -36,5 +36,5 @@ window.RU_NL_BEGINNER_SENTENCES = [
   {id:'ru-nl-sentences-5',title:'Over jezelf',description:'Vertellen over je leven en voorkeuren.',sentences:[
     ['Ik woon in Nederland.','Я живу в Нидерландах.'],['Ik werk vandaag.','Я сегодня работаю.'],['Ik houd van muziek.','Я люблю музыку.'],['Ik lees graag.','Я люблю читать.'],['Ik drink graag koffie.','Я люблю кофе.'],['Ik heb een broer.','У меня есть брат.'],['Dit is mijn familie.','Это моя семья.'],['Ik ben moe.','Я устал.'],['Ik ben blij.','Я рад.'],['Tot morgen!','До завтра!']
   ]}
-].map(pack=>({...pack,lastScore:null,sentences:pack.sentences.map(([vi,nl])=>({vi,nl,literal:'',note:'',mastery:0}))}));
+].map(pack=>({...pack,lastScore:null,sentences:pack.sentences.map(([nl,ru])=>({vi:ru,nl,literal:'',note:'',mastery:0}))}));
 
