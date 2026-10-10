@@ -297,7 +297,8 @@ function openList(id){
   document.querySelector('#detail-title').textContent=list.title; document.querySelector('#detail-languages').textContent=`${list.from} → ${list.to}`;
   document.querySelector('#detail-meta').textContent=`${list.words.length} woorden · ${list.lastScore==null?'Nog niet geoefend':`laatste score ${list.lastScore}%`}`;
   document.querySelector('#word-count').textContent=`${list.words.length} entries`;
-  document.querySelector('#word-table').innerHTML=list.words.map((w,i)=>`<div class="word-row"><span>${String(i+1).padStart(2,'0')}</span><b>${esc(w.front)}</b><span>${esc(w.back)}</span></div>`).join(''); route('detail');
+  document.querySelector('#word-table').innerHTML=list.words.map((w,i)=>`<div class="word-row"><span>${String(i+1).padStart(2,'0')}</span><b>${esc(w.front)}</b><span class="word-translation">${esc(w.back)}<button type="button" class="inline-speak" data-speak-word="${i}" aria-label="Luister naar uitspraak">◖))</button></span></div>`).join('');
+  document.querySelectorAll('[data-speak-word]').forEach(button=>button.addEventListener('click',()=>{const word=list.words[Number(button.dataset.speakWord)],target=wordSpeechTarget(word,list);speakText(target.text,target.lang);}));route('detail');
 }
 function deleteList(){
   const list=listById(activeListId); if(!list || !confirm(`Verwijder “${list.title}”?`))return;
@@ -319,7 +320,8 @@ function openSentencePack(id){
   document.querySelector('#sentence-detail-title').textContent=pack.title;
   document.querySelector('#sentence-detail-meta').textContent=`${pack.sentences.length} zinnen · ${pack.lastScore==null?'Nog niet geoefend':`laatste score ${pack.lastScore}%`}`;
   document.querySelector('#sentence-count').textContent=`${pack.sentences.length} zinnen`;
-  document.querySelector('#sentence-table').innerHTML=pack.sentences.map((s,i)=>`<article class="sentence-row"><span>${String(i+1).padStart(2,'0')}</span><div><b>${esc(s.vi)}</b><p>${esc(s.nl)}</p>${s.literal?`<small>${esc(s.literal)}</small>`:''}</div><em>${(s.mastery||0)>=2?'BEHEERST':(s.mastery||0)===1?'LEREN':'NIEUW'}</em></article>`).join('');
+  document.querySelector('#sentence-table').innerHTML=pack.sentences.map((s,i)=>`<article class="sentence-row"><span>${String(i+1).padStart(2,'0')}</span><div><b>${esc(s.vi)}</b><p>${esc(s.nl)}</p>${s.literal?`<small>${esc(s.literal)}</small>`:''}<button type="button" class="inline-speak" data-speak-sentence="${i}" aria-label="Luister naar uitspraak">◖)) Luister</button></div><em>${(s.mastery||0)>=2?'BEHEERST':(s.mastery||0)===1?'LEREN':'NIEUW'}</em></article>`).join('');
+  document.querySelectorAll('[data-speak-sentence]').forEach(button=>button.addEventListener('click',()=>{const target=sentenceSpeechTarget(pack.sentences[Number(button.dataset.speakSentence)]);speakText(target.text,target.lang);}));
   route('sentence-detail');
 }
 function newSentencePack(){editingSentencePackId=null;document.querySelector('#sentence-editor-heading').textContent='NIEUWE ZINNEN.';document.querySelector('#sentence-form').reset();route('sentence-editor');}
@@ -426,10 +428,20 @@ function checkChoice(answer){
   document.querySelector('#choice-next').addEventListener('click',nextQuestion);document.querySelector('#quiz-score').textContent=quiz.points;
 }
 function acceptCurrentWord(){if(!quiz.answered)return;const word=quiz.items[quiz.index];removeMistake(word);recordWordResult(word,true);quiz.correct++;quiz.points+=6;nextQuestion();}
-function speakCurrent(){
-  if(!('speechSynthesis' in window)||!quiz)return;const text=quiz.kind==='sentence'?quiz.items[quiz.index]?.vi:quiz.items[quiz.index]?.front;if(!text)return;
-  speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang='vi-VN';utterance.rate=.82;speechSynthesis.speak(utterance);
+function courseSpeechLanguage(){return data.course?.id==='en-ru'?'en-US':data.course?.id==='ru-nl'?'ru-RU':'vi-VN';}
+function sentenceSpeechTarget(sentence){const lang=courseSpeechLanguage();return{text:data.course?.id==='ru-nl'?sentence?.nl:sentence?.vi,lang};}
+function wordSpeechTarget(word,list=quiz?.list){
+  const lang=courseSpeechLanguage();
+  if(data.course?.id==='ru-nl'){const frontIsRussian=/[А-ЯЁа-яё]/.test(word?.front||'');return{text:frontIsRussian?word?.front:word?.back,lang};}
+  return{text:word?.front,lang};
 }
+function speakText(text,lang){
+  if(!text)return;if(!('speechSynthesis' in window)){showToast('Uitspraak wordt niet ondersteund op dit apparaat');return;}
+  const synth=window.speechSynthesis,utterance=new SpeechSynthesisUtterance(text);utterance.lang=lang;utterance.rate=lang==='ru-RU'?.72:.84;
+  const voices=synth.getVoices(),voice=voices.find(item=>item.lang.toLowerCase()===lang.toLowerCase())||voices.find(item=>item.lang.toLowerCase().startsWith(lang.slice(0,2).toLowerCase()));if(voice)utterance.voice=voice;
+  utterance.onerror=()=>showToast('De uitspraak kon niet worden afgespeeld');synth.cancel();synth.resume();synth.speak(utterance);
+}
+function speakCurrent(){if(!quiz)return;const target=quiz.kind==='sentence'?sentenceSpeechTarget(quiz.items[quiz.index]):wordSpeechTarget(quiz.items[quiz.index],quiz.list);speakText(target.text,target.lang);}
 function skipCurrent(){if(!quiz||quiz.index>=quiz.items.length)return;const item=quiz.items[quiz.index];addMistake(item);recordSkill(quiz.kind==='sentence'?(quiz.mode==='build'?'sentenceBuild':'sentenceTranslate'):quiz.mode==='context'?'context':questionSides(item).answer===item.front?'production':'recognition',false);quiz.streak=0;nextQuestion();}
 function renderSentenceQuestion(){
   const stage=document.querySelector('#quiz-stage'), sentence=quiz.items[quiz.index];
