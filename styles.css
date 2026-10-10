@@ -69,4 +69,11 @@ main{max-width:1440px;margin:auto}.view{display:none}.view.active{display:block}
 .dark-theme .daily-lesson-card{background:#1c1c19;border-color:#777}
 .word-translation{display:flex;align-items:center;justify-content:space-between;gap:12px}.inline-speak{width:max-content;border:1px solid var(--line);background:transparent;color:inherit;padding:7px 9px;font:600 10px 'DM Mono';white-space:nowrap}.inline-speak:hover{background:var(--accent);color:var(--ink)}.sentence-row .inline-speak{margin-top:10px}.dark-theme .inline-speak{border-color:#666;color:#f3f1e8}
 @media(max-width:720px){.home-daily{padding-top:38px}.daily-lesson-card{grid-template-columns:54px 1fr;box-shadow:6px 6px 0 var(--accent)}.daily-lesson-main{padding:24px 18px}.daily-lesson-main h1{font-size:38px}.daily-meta{flex-direction:column;gap:8px;margin-top:22px}.daily-start{grid-column:1/-1;min-height:64px;border-width:1px 0 0}.roadmap-heading{align-items:flex-start;flex-direction:column;margin-bottom:38px}.roadmap-heading h2{font-size:52px}.roadmap-overview{width:100%}}
+.speak-actions{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}.quiz-top{grid-template-columns:44px 1fr auto}.quiz-tools{display:flex;align-items:center;justify-content:flex-end;gap:7px}.quiz-tools>button{border:1px solid #666;background:transparent;color:var(--paper);padding:9px 11px;font:600 10px 'DM Mono';white-space:nowrap}
+.flashcard{width:min(520px,78vw,62vh);height:auto;aspect-ratio:1/1}
+.flash-face{overflow:hidden;padding:clamp(22px,5vw,48px)}
+.flash-face strong{max-width:100%;font-size:clamp(34px,6vw,64px);line-height:.96;overflow-wrap:anywhere;word-break:normal}
+.flash-face strong.flash-medium{font-size:clamp(28px,4.8vw,50px);line-height:1.05}
+.flash-face strong.flash-long{font-size:clamp(21px,3.4vw,34px);line-height:1.12}
+@media(max-width:600px){.flashcard{width:min(88vw,58vh);height:auto}.flash-face{padding:22px}.flash-face strong{font-size:clamp(30px,11vw,52px)}.flash-face strong.flash-medium{font-size:clamp(25px,8vw,42px)}.flash-face strong.flash-long{font-size:clamp(19px,6vw,30px)}.quiz-tools{gap:5px}.quiz-tools button{padding:8px 9px;font-size:10px}}
 
