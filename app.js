@@ -1,6 +1,8 @@
 const pageParams = new URLSearchParams(location.search);
 const IS_AMINA_GUEST = pageParams.get('course') === 'amina';
-const STORAGE_KEY = IS_AMINA_GUEST ? 'loop-amina-english-v1' : 'loop-language-studio-v1';
+const IS_RICHARD_GUEST = pageParams.get('course') === 'richard';
+const IS_GUEST_COURSE = IS_AMINA_GUEST || IS_RICHARD_GUEST;
+const STORAGE_KEY = IS_AMINA_GUEST ? 'loop-amina-english-v1' : IS_RICHARD_GUEST ? 'loop-richard-russian-v1' : 'loop-language-studio-v1';
 const frequencyLists = (window.VI_FREQUENCY_LISTS || []).map((list, index) => ({
   id: `vi-frequency-${index + 1}`, title: list.title, from: 'Vietnamees', to: 'Nederlands',
   createdAt: Date.now() - index, lastScore: null,
@@ -12,6 +14,8 @@ const starterSentencePacks = (window.LOOP_SENTENCE_PACKS || []).map(pack => ({
   ...pack, lastScore: null, sentences: pack.sentences.map(([vi,nl,literal,note])=>({vi,nl,literal,note,mastery:0}))
 }));
 const englishRussianSentencePacks=(window.EN_RU_SENTENCE_PACKS||[]).map(pack=>structuredClone(pack));
+const russianDutchLists=(window.RU_NL_BEGINNER_LISTS||[]).map(list=>structuredClone(list));
+const russianDutchSentencePacks=(window.RU_NL_BEGINNER_SENTENCES||[]).map(pack=>structuredClone(pack));
 const seed = {
   score: 0, bestStreak: 0, todayXp: 0, xpDate: new Date().toISOString().slice(0,10), dailyGoal: 50,
   activity: {}, activityMinutes:{}, studyMinutes:0, answered:0, skillStats:{}, readingItems:[],course:{id:'vi-nl',completedLessons:[],words:structuredClone(courseWordSeed)},
@@ -56,17 +60,28 @@ function applyAminaCurriculum(target){
   target.course={id:'en-ru',completedLessons:target.course?.id==='en-ru'?(target.course.completedLessons||[]):[],words:mergeWords(coreLists.flatMap(list=>list.words),oldCourseWords)};
   return target;
 }
+function applyRichardCurriculum(target){
+  const existingLists=Array.isArray(target.lists)?target.lists:[],coreIds=new Set(russianDutchLists.map(list=>list.id));
+  const mergeWords=(templateWords,oldWords=[])=>templateWords.map(word=>({...structuredClone(word),...(oldWords.find(old=>old.front===word.front)||{}),front:word.front,back:word.back}));
+  const coreLists=russianDutchLists.map(template=>{const old=existingLists.find(list=>list.id===template.id);return {...structuredClone(template),createdAt:old?.createdAt||Date.now(),lastScore:old?.lastScore??null,words:mergeWords(template.words,old?.words)};});
+  const oldCourseWords=target.course?.words||[],existingPacks=Array.isArray(target.sentencePacks)?target.sentencePacks:[];
+  target.lists=[...coreLists,...existingLists.filter(list=>!coreIds.has(list.id)&&list.id.startsWith('list-'))];
+  target.sentencePacks=[...russianDutchSentencePacks.map(template=>{const old=existingPacks.find(pack=>pack.id===template.id);return {...structuredClone(template),lastScore:old?.lastScore??null,sentences:template.sentences.map(sentence=>({...structuredClone(sentence),...(old?.sentences||[]).find(item=>item.vi===sentence.vi),vi:sentence.vi,nl:sentence.nl}))};}),...existingPacks.filter(pack=>pack.id.startsWith('sent-'))];
+  target.course={id:'ru-nl',completedLessons:target.course?.id==='ru-nl'?(target.course.completedLessons||[]):[],words:mergeWords(coreLists.flatMap(list=>list.words),oldCourseWords)};
+  return target;
+}
+function applyGuestCurriculum(target){return IS_AMINA_GUEST?applyAminaCurriculum(target):IS_RICHARD_GUEST?applyRichardCurriculum(target):target;}
 let data = loadData();
 let activeListId = null, editingId = null, quiz = null, activeSentencePackId = null, editingSentencePackId = null, activeReadingId=null, selectedReaderWord=null, cloudUser = null, cloudSaveTimer = null, pendingPracticeMode = null;
 
 function loadData(){
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if(!stored) return IS_AMINA_GUEST?applyAminaCurriculum(freshAccountData()):structuredClone(seed);
+    if(!stored) return IS_GUEST_COURSE?applyGuestCurriculum(freshAccountData()):structuredClone(seed);
     if(!Array.isArray(stored.sentencePacks)) stored.sentencePacks=structuredClone(starterSentencePacks);
     starterSentencePacks.forEach(pack=>{if(!stored.sentencePacks.some(item=>item.id===pack.id))stored.sentencePacks.push(structuredClone(pack));});
-    prepareData(stored);return IS_AMINA_GUEST?applyAminaCurriculum(stored):stored;
-  } catch { return IS_AMINA_GUEST?applyAminaCurriculum(freshAccountData()):structuredClone(seed); }
+    prepareData(stored);return IS_GUEST_COURSE?applyGuestCurriculum(stored):stored;
+  } catch { return IS_GUEST_COURSE?applyGuestCurriculum(freshAccountData()):structuredClone(seed); }
 }
 function dayKey(date=new Date()){return date.toISOString().slice(0,10);}
 function isMistakeFromLastWeek(item){const cutoff=new Date();cutoff.setDate(cutoff.getDate()-6);return (item.mistakeDates||[]).some(date=>date>=dayKey(cutoff));}
@@ -92,7 +107,7 @@ function importPresetFromUrl(){
   params.delete('import');hashParams.delete('import');history.replaceState({},'',`${location.pathname}${params.size?`?${params}`:''}${hashParams.size?`#${hashParams}`:''}`);return preset.id;
 }
 function esc(value=''){ return value.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
-function normalize(value){ return value.trim().toLocaleLowerCase('nl').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim(); }
+function normalize(value){ return value.trim().toLocaleLowerCase('nl').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim(); }
 const equivalentAnswers = [
   ['bedankt','dankjewel','dank je wel','dank je','thanks'], ['hallo','hoi','goedendag'],
   ['tot ziens','doei','dag'], ['ja','jazeker','zeker'], ['nee','neen'],
@@ -178,7 +193,7 @@ function cardHTML(list,index){
 function bindCards(root){ root.querySelectorAll('[data-list-id]').forEach(card=>card.addEventListener('click',()=>openList(card.dataset.listId))); }
 function emptyHTML(){ return `<div class="empty"><h3>Nog geen lijsten</h3><p>Maak je eerste woordenlijst en begin met leren.</p><button class="btn btn-accent" data-empty-create>Nieuwe lijst</button></div>`; }
 function renderHome(){
-  document.querySelector('#course-dedication')?.classList.toggle('hidden',data.course?.id!=='en-ru');
+  const dedication=document.querySelector('#course-dedication'),personalCourse=['en-ru','ru-nl'].includes(data.course?.id);dedication?.classList.toggle('hidden',!personalCourse);if(dedication)dedication.textContent=data.course?.id==='ru-nl'?'Richard leert Russisch! 🇷🇺':'Амина учит английский! ❤️';
   document.querySelector('#amina-love')?.classList.toggle('hidden',data.course?.id!=='en-ru');
   const lesson=currentStoryLesson(),chapter=activeStoryChapters().find(item=>item.lessons.some(entry=>entry.id===lesson.id));document.querySelector('#daily-lesson-title').textContent=lesson.title;document.querySelector('#daily-lesson-copy').textContent=`${chapter.title} · ${chapter.subtitle}`;
   updateStats();renderRoadmap();
@@ -207,12 +222,20 @@ const englishStoryChapters=[
   ['Живой английский','Понимай обычную речь и реагируй быстрее',['Сокращённые формы','Разговорные фразы','Смысл по контексту','Проверка: речь']],
   ['Самостоятельный уровень','Соединяй чтение, письмо и разговор',['Объяснить сложную идею','Обсудить текст','Свободный ответ','Финальное испытание']]
 ].map((chapter,chapterIndex)=>({title:chapter[0],subtitle:chapter[1],lessons:chapter[2].map((title,lessonIndex)=>({id:`en-ru-${chapterIndex+1}-${lessonIndex+1}`,title,type:lessonIndex===3?'review':'words',wordStart:(chapterIndex*24)+(lessonIndex*8)}))}));
-function activeStoryChapters(){return data.course?.id==='en-ru'?englishStoryChapters:vietnameseStoryChapters;}
-function activeCourseLanguages(){return data.course?.id==='en-ru'?{from:'Английский',to:'Русский',label:'АНГЛИЙСКИЙ'}:{from:'Vietnamees',to:'Nederlands',label:'VIETNAMEES'};}
+const russianStoryChapters=[
+  ['Het Cyrillische alfabet','Leer de 33 letters herkennen en uitspreken',['Letters А–Й','Letters К–Т','Letters У–Я','Checkpoint: alfabet']],
+  ['Lezen zonder paniek','Koppel Russische letters aan echte woorden',['Herkenbare letters','Misleidende letters','Korte woorden lezen','Checkpoint: lezen']],
+  ['Eerste gesprekken','Begroeten en jezelf voorstellen',['Hallo en tot ziens','Ik heet Richard','Hoe gaat het?','Checkpoint: kennismaken']],
+  ['Dagelijkse basis','De woorden die je iedere dag nodig hebt',['Mensen en familie','Thuis en dagelijks leven','Handige werkwoorden','Checkpoint: basis']],
+  ['Eten en onderweg','Red jezelf in eenvoudige situaties',['Eten en drinken','De weg vragen','Prijzen en bestellen','Checkpoint: onderweg']],
+  ['Zelf korte zinnen maken','Combineer woorden tot begrijpelijke zinnen',['Over jezelf vertellen','Vragen begrijpen','Korte antwoorden','Eindchallenge: beginner']]
+].map((chapter,chapterIndex)=>({title:chapter[0],subtitle:chapter[1],lessons:chapter[2].map((title,lessonIndex)=>({id:`ru-nl-${chapterIndex+1}-${lessonIndex+1}`,title,type:(chapterIndex>=2&&lessonIndex===1)?'sentences':lessonIndex===3?'review':'words',wordStart:(chapterIndex*16)+(lessonIndex*8)}))}));
+function activeStoryChapters(){return data.course?.id==='en-ru'?englishStoryChapters:data.course?.id==='ru-nl'?russianStoryChapters:vietnameseStoryChapters;}
+function activeCourseLanguages(){return data.course?.id==='en-ru'?{from:'Английский',to:'Русский',label:'АНГЛИЙСКИЙ'}:data.course?.id==='ru-nl'?{from:'Nederlands',to:'Russisch',label:'RUSSISCH'}:{from:'Vietnamees',to:'Nederlands',label:'VIETNAMEES'};}
 function flatStoryLessons(){return activeStoryChapters().flatMap(chapter=>chapter.lessons);}
 function currentStoryLesson(){return flatStoryLessons().find(lesson=>!data.course.completedLessons.includes(lesson.id))||flatStoryLessons().at(-1);}
 function renderRoadmap(){
-  const chapters=activeStoryChapters(),language=activeCourseLanguages(),completedIds=new Set(data.course.completedLessons),completed=completedIds.size,current=currentStoryLesson(),level=Math.min(10,Math.floor(completed/4)+1);document.querySelector('#roadmap-level').textContent=`LEVEL ${level} · ${language.label}`;document.querySelector('#roadmap-summary').textContent=data.course?.id==='en-ru'?`${completed} из 40 уроков пройдено`:`${completed} van 40 lessen voltooid`;
+  const chapters=activeStoryChapters(),language=activeCourseLanguages(),completedIds=new Set(data.course.completedLessons),completed=completedIds.size,current=currentStoryLesson(),total=flatStoryLessons().length,level=Math.min(10,Math.floor(completed/4)+1);document.querySelector('#roadmap-level').textContent=`LEVEL ${level} · ${language.label}`;document.querySelector('#roadmap-summary').textContent=data.course?.id==='en-ru'?`${completed} из ${total} уроков пройдено`:`${completed} van ${total} lessen voltooid`;
   document.querySelector('#story-roadmap').innerHTML=chapters.map((chapter,chapterIndex)=>`<section class="story-chapter"><header><span>${String(chapterIndex+1).padStart(2,'0')}</span><div><h2>${chapter.title}</h2><p>${chapter.subtitle}</p></div></header><div class="lesson-path">${chapter.lessons.map((lesson,lessonIndex)=>{const state=completedIds.has(lesson.id)?'done':lesson.id===current.id?'current':'locked';return`<button class="lesson-node ${state}" data-story-lesson="${lesson.id}" ${state==='locked'?'disabled':''}><span>${state==='done'?'✓':state==='locked'?'🔒':lessonIndex+1}</span><div><small>${data.course?.id==='en-ru'?'УРОК':'LES'} ${lessonIndex+1} · ${lesson.type.toUpperCase()}</small><b>${lesson.title}</b></div><i>${state==='done'?(data.course?.id==='en-ru'?'ПОВТОРИТЬ →':'HERHAAL →'):state==='current'?(data.course?.id==='en-ru'?'НАЧАТЬ →':'START →'):(data.course?.id==='en-ru'?'ЗАКРЫТО':'VERGRENDELD')}</i></button>`;}).join('')}</div></section>`).join('');
   document.querySelectorAll('[data-story-lesson]:not(:disabled)').forEach(button=>button.addEventListener('click',()=>startStoryLesson(button.dataset.storyLesson)));
 }
@@ -537,8 +560,8 @@ document.querySelector('#account-close').addEventListener('click',()=>document.q
 document.querySelector('#account-button').addEventListener('click',()=>{if(cloudUser){document.querySelector('#account-email').textContent=cloudUser.email;document.querySelector('#account-modal').classList.remove('hidden');}else authGate.classList.remove('hidden');});
 document.querySelector('#logout-button').addEventListener('click',async()=>{await supabaseClient.auth.signOut();cloudUser=null;document.querySelector('#account-button').textContent='Inloggen';data=freshAccountData();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();document.querySelector('#account-modal').classList.add('hidden');showToast('Je bent uitgelogd');});
 document.querySelector('#export-data').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`loop-export-${new Date().toISOString().slice(0,10)}.json`;link.click();URL.revokeObjectURL(link.href);});
-if(IS_AMINA_GUEST){
-  const accountButton=document.querySelector('#account-button');accountButton.textContent='Без входа';accountButton.disabled=true;accountButton.title='Прогресс сохраняется на этом устройстве';
+if(IS_GUEST_COURSE){
+  const accountButton=document.querySelector('#account-button');accountButton.textContent=IS_AMINA_GUEST?'Без входа':'Zonder login';accountButton.disabled=true;accountButton.title=IS_AMINA_GUEST?'Прогресс сохраняется на этом устройстве':'Voortgang wordt op dit apparaat opgeslagen';
   localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
 }else if(supabaseClient)supabaseClient.auth.getSession().then(({data:{session}})=>{if(session)activateAccount(session.user);else if(location.search.includes('import=')||location.hash.includes('import=')){authMessage.textContent='Log in om deze woordenlijst aan je account toe te voegen.';authGate.classList.remove('hidden');}});else authMessage.textContent='De accountverbinding kon niet worden geladen.';
 updateStats(); renderHome();
