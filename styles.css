@@ -76,4 +76,5 @@ main{max-width:1440px;margin:auto}.view{display:none}.view.active{display:block}
 .flash-face strong.flash-medium{font-size:clamp(28px,4.8vw,50px);line-height:1.05}
 .flash-face strong.flash-long{font-size:clamp(21px,3.4vw,34px);line-height:1.12}
 @media(max-width:600px){.flashcard{width:min(88vw,58vh);height:auto}.flash-face{padding:22px}.flash-face strong{font-size:clamp(30px,11vw,52px)}.flash-face strong.flash-medium{font-size:clamp(25px,8vw,42px)}.flash-face strong.flash-long{font-size:clamp(19px,6vw,30px)}.quiz-tools{gap:5px}.quiz-tools button{padding:8px 9px;font-size:10px}}
+.russian-keyboard{margin-top:20px;border:2px solid var(--accent);box-shadow:5px 5px 0 var(--accent)}.russian-keyboard .keyboard-title{display:block;margin:-13px -13px 12px;padding:11px 13px;background:var(--accent);color:var(--ink);font:700 11px 'DM Mono';letter-spacing:.05em}.russian-keyboard>small{color:var(--paper)}.russian-keyboard button{font-size:18px;font-weight:700}.russian-keyboard button:focus{background:var(--accent);color:var(--ink)}
 
