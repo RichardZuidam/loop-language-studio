@@ -107,6 +107,8 @@
     'CREATE / EDIT':'СОЗДАТЬ / ИЗМЕНИТЬ','Naam van het thema':'Название темы','Naam van de lijst':'Название списка','één paar per regel':'одна пара в строке','Tôi muốn gọi món. = Ik wil graag bestellen.\nMón này rất ngon. = Dit gerecht is erg lekker.':'I would like to order. = Я хочу сделать заказ.\nThis dish is delicious. = Это блюдо очень вкусное.','xin chào = hallo\ncảm ơn = bedankt\ntạm biệt = tot ziens':'hello = привет\nthank you = спасибо\ngoodbye = до свидания',
     'Alle woorden':'Все слова','Leren in context':'Учить в контексте','Leg de functie van het woord uit':'Объясни значение слова в контексте','Typen, kiezen en flashcards door elkaar':'Ввод, выбор ответа и карточки вперемешку','Maak eerst een woordenlijst.':'Сначала создай список слов.','Nog geen teksten':'Текстов пока нет','Plak een tekst of importeer een artikel om te beginnen.':'Вставь текст или импортируй статью, чтобы начать.','EIGEN TEKST':'СВОЙ ТЕКСТ','GEÏMPORTEERD':'ИМПОРТИРОВАНО'
   });
+  Object.assign(translations.en, {'Luister':'Listen','Langzaam':'Slow','Luister langzaam':'Listen slowly'});
+  Object.assign(translations.ru, {'Luister':'Слушать','Langzaam':'Медленно','Luister langzaam':'Слушать медленно'});
   const originals = new WeakMap();
   const excluded = '.word-row,.sentence-row,.quiz-word,.sentence-prompt,.context-example,.context-translation,.flash-face strong,input,textarea,option';
   let language = new URLSearchParams(location.search).get('lang') || localStorage.getItem('loop-language') || 'nl';
