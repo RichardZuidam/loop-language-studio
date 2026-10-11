@@ -72,7 +72,7 @@ function applyRichardCurriculum(target){
 }
 function applyGuestCurriculum(target){return IS_AMINA_GUEST?applyAminaCurriculum(target):IS_RICHARD_GUEST?applyRichardCurriculum(target):target;}
 let data = loadData();
-let activeListId = null, editingId = null, quiz = null, activeSentencePackId = null, editingSentencePackId = null, activeReadingId=null, selectedReaderWord=null, cloudUser = null, cloudSaveTimer = null, pendingPracticeMode = null;
+let activeListId = null, editingId = null, quiz = null, activeSentencePackId = null, editingSentencePackId = null, activeReadingId=null, selectedReaderWord=null, cloudUser = null, cloudSaveTimer = null, cloudEnvelope = null, pendingPracticeMode = null;
 
 function loadData(){
   try {
@@ -557,11 +557,21 @@ document.querySelector('#photo-input').addEventListener('change',async event=>{
 });
 const authGate=document.querySelector('#auth-gate'),authMessage=document.querySelector('#auth-message'),authSubmit=document.querySelector('#auth-submit');let authMode='login';
 const supabaseClient=window.supabase?.createClient(window.LOOP_SUPABASE.url,window.LOOP_SUPABASE.key);
-function scheduleCloudSave(){if(!cloudUser||!supabaseClient)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(async()=>{const {error}=await supabaseClient.from('user_state').upsert({user_id:cloudUser.id,data,updated_at:new Date().toISOString()});if(error)showToast('Online opslaan lukt nog niet');},500);}
+function guestProfileKey(){return IS_RICHARD_GUEST?'richard':IS_AMINA_GUEST?'amina':null;}
+function progressWeight(profile){return Number(profile?.score||0)+Number(profile?.answered||0)*5+Number(profile?.studyMinutes||0)*2+(profile?.course?.completedLessons?.length||0)*100;}
+function cloudPayload(){
+  if(!IS_GUEST_COURSE)return data;
+  const key=guestProfileKey();cloudEnvelope=cloudEnvelope&&typeof cloudEnvelope==='object'?cloudEnvelope:{};cloudEnvelope._courseProfiles=cloudEnvelope._courseProfiles&&typeof cloudEnvelope._courseProfiles==='object'?cloudEnvelope._courseProfiles:{};cloudEnvelope._courseProfiles[key]=data;return cloudEnvelope;
+}
+function scheduleCloudSave(){if(!cloudUser||!supabaseClient)return;clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(async()=>{const {error}=await supabaseClient.from('user_state').upsert({user_id:cloudUser.id,data:cloudPayload(),updated_at:new Date().toISOString()});if(error)showToast('Online opslaan lukt nog niet');},500);}
 async function activateAccount(user){
   cloudUser=user;authGate.classList.add('hidden');const accountButton=document.querySelector('#account-button');accountButton.textContent='Account';accountButton.title=user.email||'Account';
   const {data:row,error}=await supabaseClient.from('user_state').select('data').eq('user_id',user.id).maybeSingle();
-  if(row?.data){data=prepareData(row.data);}
+  if(IS_GUEST_COURSE){
+    cloudEnvelope=row?.data&&typeof row.data==='object'?row.data:{};const remote=cloudEnvelope._courseProfiles?.[guestProfileKey()],local=data;
+    data=applyGuestCurriculum(prepareData(remote&&progressWeight(remote)>=progressWeight(local)?remote:local));
+    if(!remote||data===local||progressWeight(local)>progressWeight(remote))scheduleCloudSave();
+  }else if(row?.data){data=prepareData(row.data);}
   else if(!error){
     const mayImport=hadLegacyData&&!localStorage.getItem('loop-owner-migrated');
     data=mayImport?data:freshAccountData();
@@ -576,12 +586,10 @@ document.querySelector('#forgot-password').addEventListener('click',async()=>{co
 document.querySelector('#auth-close').addEventListener('click',()=>authGate.classList.add('hidden'));
 document.querySelector('#account-close').addEventListener('click',()=>document.querySelector('#account-modal').classList.add('hidden'));
 document.querySelector('#account-button').addEventListener('click',()=>{if(cloudUser){document.querySelector('#account-email').textContent=cloudUser.email;document.querySelector('#account-modal').classList.remove('hidden');}else authGate.classList.remove('hidden');});
-document.querySelector('#logout-button').addEventListener('click',async()=>{await supabaseClient.auth.signOut();cloudUser=null;document.querySelector('#account-button').textContent='Inloggen';data=freshAccountData();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();document.querySelector('#account-modal').classList.add('hidden');showToast('Je bent uitgelogd');});
+document.querySelector('#logout-button').addEventListener('click',async()=>{await supabaseClient.auth.signOut();cloudUser=null;document.querySelector('#account-button').textContent=IS_AMINA_GUEST?'Синхронизация':IS_RICHARD_GUEST?'Synchroniseren':'Inloggen';if(!IS_GUEST_COURSE)data=freshAccountData();localStorage.setItem(STORAGE_KEY,JSON.stringify(data));renderHome();document.querySelector('#account-modal').classList.add('hidden');showToast('Je bent uitgelogd');});
 document.querySelector('#export-data').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download=`loop-export-${new Date().toISOString().slice(0,10)}.json`;link.click();URL.revokeObjectURL(link.href);});
-if(IS_GUEST_COURSE){
-  const accountButton=document.querySelector('#account-button');accountButton.textContent=IS_AMINA_GUEST?'Без входа':'Zonder login';accountButton.disabled=true;accountButton.title=IS_AMINA_GUEST?'Прогресс сохраняется на этом устройстве':'Voortgang wordt op dit apparaat opgeslagen';
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-}else if(supabaseClient)supabaseClient.auth.getSession().then(({data:{session}})=>{if(session)activateAccount(session.user);else if(location.search.includes('import=')||location.hash.includes('import=')){authMessage.textContent='Log in om deze woordenlijst aan je account toe te voegen.';authGate.classList.remove('hidden');}});else authMessage.textContent='De accountverbinding kon niet worden geladen.';
+if(IS_GUEST_COURSE)localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+if(supabaseClient)supabaseClient.auth.getSession().then(({data:{session}})=>{if(session)activateAccount(session.user);else if(IS_GUEST_COURSE){const accountButton=document.querySelector('#account-button');accountButton.textContent=IS_AMINA_GUEST?'Синхронизация':'Synchroniseren';accountButton.title=IS_AMINA_GUEST?'Войти и синхронизировать прогресс':'Log in en synchroniseer je voortgang';}else if(location.search.includes('import=')||location.hash.includes('import=')){authMessage.textContent='Log in om deze woordenlijst aan je account toe te voegen.';authGate.classList.remove('hidden');}});else authMessage.textContent='De accountverbinding kon niet worden geladen.';
 updateStats(); renderHome();
 if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
 
