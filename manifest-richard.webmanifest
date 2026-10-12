@@ -1,0 +1,13 @@
+{
+  "name": "LOOP — Richard leert Russisch",
+  "short_name": "LOOP Russisch",
+  "description": "Richards persoonlijke cursus Nederlands naar Russisch.",
+  "start_url": "./?course=richard&lang=nl",
+  "scope": "./",
+  "id": "./?course=richard",
+  "display": "standalone",
+  "background_color": "#171714",
+  "theme_color": "#171714",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
+
