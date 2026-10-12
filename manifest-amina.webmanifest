@@ -1,0 +1,13 @@
+{
+  "name": "LOOP — Амина учит английский",
+  "short_name": "LOOP English",
+  "description": "Персональный курс английского языка для Амины.",
+  "start_url": "./?course=amina&lang=ru",
+  "scope": "./",
+  "id": "./?course=amina",
+  "display": "standalone",
+  "background_color": "#171714",
+  "theme_color": "#171714",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
+
