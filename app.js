@@ -444,10 +444,13 @@ function wordSpeechTarget(word,list=quiz?.list){
   if(data.course?.id==='ru-nl'){const frontIsRussian=/[А-ЯЁа-яё]/.test(word?.front||'');return{text:frontIsRussian?word?.front:word?.back,lang};}
   return{text:word?.front,lang};
 }
+function bestSpeechVoice(lang){
+  const language=lang.toLowerCase(),base=language.slice(0,2);return [...window.speechSynthesis.getVoices()].filter(voice=>voice.lang.toLowerCase().startsWith(base)).sort((a,b)=>{const score=voice=>{const name=voice.name.toLowerCase(),voiceLang=voice.lang.toLowerCase();let value=voiceLang===language?100:60;if(/premium|enhanced|natural|neural|siri/.test(name))value+=45;if(/apple|google|microsoft/.test(name))value+=20;if(voice.localService)value+=5;if(voice.default)value+=2;if(/compact|espeak/.test(name))value-=35;return value;};return score(b)-score(a);})[0]||null;
+}
 function speakText(text,lang,slow=false){
   if(!text)return;if(!('speechSynthesis' in window)){showToast('Uitspraak wordt niet ondersteund op dit apparaat');return;}
-  const synth=window.speechSynthesis,utterance=new SpeechSynthesisUtterance(text);utterance.lang=lang;utterance.rate=slow?.48:(lang==='ru-RU'?.72:.84);
-  const voices=synth.getVoices(),voice=voices.find(item=>item.lang.toLowerCase()===lang.toLowerCase())||voices.find(item=>item.lang.toLowerCase().startsWith(lang.slice(0,2).toLowerCase()));if(voice)utterance.voice=voice;
+  const synth=window.speechSynthesis,utterance=new SpeechSynthesisUtterance(text);utterance.lang=lang;utterance.rate=slow?.55:(lang==='ru-RU'?.82:lang==='en-US'?.9:.86);utterance.pitch=1;utterance.volume=1;
+  const voice=bestSpeechVoice(lang);if(voice)utterance.voice=voice;
   utterance.onerror=()=>showToast('De uitspraak kon niet worden afgespeeld');synth.cancel();synth.resume();synth.speak(utterance);
 }
 function speakCurrent(slow=false){if(!quiz)return;const target=quiz.kind==='sentence'?sentenceSpeechTarget(quiz.items[quiz.index]):wordSpeechTarget(quiz.items[quiz.index],quiz.list);speakText(target.text,target.lang,slow);}
@@ -525,7 +528,7 @@ document.querySelector('#practice-daily-review').addEventListener('click',startD
 document.querySelector('#reader-import-url').addEventListener('click',importReaderUrl);
 document.querySelector('#reader-form').addEventListener('submit',event=>{event.preventDefault();const item={id:`reading-${Date.now()}`,title:document.querySelector('#reader-title').value.trim(),sourceLanguage:document.querySelector('#reader-source-language').value,targetLanguage:document.querySelector('#reader-target-language').value,url:document.querySelector('#reader-url').value.trim(),text:document.querySelector('#reader-text').value.trim(),clickedWords:[],createdAt:Date.now(),updatedAt:Date.now()};repairReadingDirection(item);data.readingItems.unshift(item);saveData();event.target.reset();setReaderCourseDefaults();document.querySelector('#reader-import-status').textContent='Bij video of audio kun je hieronder ook zelf het transcript plakken.';openReading(item.id);showToast('Tekst opgeslagen in je bibliotheek');});
 document.querySelector('#reader-save-word').addEventListener('click',saveReaderWord);
-document.querySelector('#reader-speak-word').addEventListener('click',()=>{const item=readingById(activeReadingId);if(!item||!selectedReaderWord||!('speechSynthesis' in window))return;const utterance=new SpeechSynthesisUtterance(selectedReaderWord);utterance.lang=item.sourceLanguage;speechSynthesis.cancel();speechSynthesis.speak(utterance);});
+document.querySelector('#reader-speak-word').addEventListener('click',()=>{const item=readingById(activeReadingId);if(!item||!selectedReaderWord)return;const languageCodes={ru:'ru-RU',en:'en-US',vi:'vi-VN',nl:'nl-NL',fr:'fr-FR',es:'es-ES'};speakText(selectedReaderWord,languageCodes[item.sourceLanguage]||item.sourceLanguage);});
 document.querySelector('#reader-delete').addEventListener('click',()=>{const item=readingById(activeReadingId);if(!item||!confirm(`Verwijder “${item.title}” uit je bibliotheek?`))return;data.readingItems=data.readingItems.filter(entry=>entry.id!==item.id);saveData();route('reading');showToast('Tekst verwijderd');});
 document.querySelector('#context-choice-close').addEventListener('click',()=>document.querySelector('#context-choice-modal').classList.add('hidden'));
 document.querySelectorAll('[data-context-translation]').forEach(button=>button.addEventListener('click',()=>{document.querySelector('#context-choice-modal').classList.add('hidden');startQuiz('context',{configured:true,showTranslation:button.dataset.contextTranslation==='yes'});}));
