@@ -224,13 +224,25 @@ const englishStoryChapters=[
   ['Самостоятельный уровень','Соединяй чтение, письмо и разговор',['Объяснить сложную идею','Обсудить текст','Свободный ответ','Финальное испытание']]
 ].map((chapter,chapterIndex)=>({title:chapter[0],subtitle:chapter[1],lessons:chapter[2].map((title,lessonIndex)=>({id:`en-ru-${chapterIndex+1}-${lessonIndex+1}`,title,type:lessonIndex===3?'review':'words',wordStart:(chapterIndex*24)+(lessonIndex*8)}))}));
 const russianStoryChapters=[
-  ['Het Cyrillische alfabet','Leer de 33 letters herkennen en uitspreken',['Letters А–Й','Letters К–Т','Letters У–Я','Checkpoint: alfabet']],
-  ['Lezen zonder paniek','Koppel Russische letters aan echte woorden',['Herkenbare letters','Misleidende letters','Korte woorden lezen','Checkpoint: lezen']],
-  ['Eerste gesprekken','Begroeten en jezelf voorstellen',['Hallo en tot ziens','Ik heet Richard','Hoe gaat het?','Checkpoint: kennismaken']],
-  ['Dagelijkse basis','De woorden die je iedere dag nodig hebt',['Mensen en familie','Thuis en dagelijks leven','Handige werkwoorden','Checkpoint: basis']],
-  ['Eten en onderweg','Red jezelf in eenvoudige situaties',['Eten en drinken','De weg vragen','Prijzen en bestellen','Checkpoint: onderweg']],
-  ['Zelf korte zinnen maken','Combineer woorden tot begrijpelijke zinnen',['Over jezelf vertellen','Vragen begrijpen','Korte antwoorden','Eindchallenge: beginner']]
-].map((chapter,chapterIndex)=>({title:chapter[0],subtitle:chapter[1],lessons:chapter[2].map((title,lessonIndex)=>({id:`ru-nl-${chapterIndex+1}-${lessonIndex+1}`,title,type:(chapterIndex>=2&&lessonIndex===1)?'sentences':lessonIndex===3?'review':'words',wordStart:(chapterIndex*16)+(lessonIndex*8)}))}));
+  {title:'Alfabet vanaf nul',subtitle:'Steeds maar 6 letters: eerst bekijken, daarna herkennen',lessons:[
+    {title:'Bekijk А–Е',mode:'cards',wordStart:0,wordCount:6,alphabet:true},{title:'Herken А–Е',mode:'choice',wordStart:0,wordCount:6,alphabet:true},{title:'Bekijk Ё–Л',mode:'cards',wordStart:6,wordCount:6,alphabet:true},{title:'Herken А–Л',mode:'choice',wordStart:0,wordCount:12,alphabet:true}
+  ]},
+  {title:'De rest van het alfabet',subtitle:'Rustig verder zonder Russische woorden te hoeven typen',lessons:[
+    {title:'Bekijk М–Т',mode:'cards',wordStart:12,wordCount:8,alphabet:true},{title:'Herken М–Т',mode:'choice',wordStart:12,wordCount:8,alphabet:true},{title:'Bekijk У–Я',mode:'cards',wordStart:20,wordCount:13,alphabet:true},{title:'Checkpoint: letters herkennen',mode:'choice',wordStart:0,wordCount:33,alphabet:true,maxItems:10}
+  ]},
+  {title:'Je eerste Russische woorden',subtitle:'Eerst zien en horen, daarna pas kiezen',lessons:[
+    {title:'Bekijk ja, nee en hallo',mode:'cards',wordStart:33,wordCount:6},{title:'Herken ja, nee en hallo',mode:'choice',wordStart:33,wordCount:6},{title:'Bekijk bedankt en sorry',mode:'cards',wordStart:39,wordCount:6},{title:'Checkpoint: eerste woorden',mode:'choice',wordStart:33,wordCount:12}
+  ]},
+  {title:'Kleine stapjes vooruit',subtitle:'Korte, veelgebruikte woorden met veel herhaling',lessons:[
+    {title:'Ik, jij, hij en zij',mode:'cards',wordStart:43,wordCount:7},{title:'Herken personen',mode:'choice',wordStart:43,wordCount:7},{title:'Dit, hier en daar',mode:'cards',wordStart:49,wordCount:5},{title:'Checkpoint: basiswoorden',mode:'choice',wordStart:43,wordCount:11}
+  ]},
+  {title:'Zelf antwoorden',subtitle:'Nu pas korte Russische antwoorden invoeren',lessons:[
+    {title:'Typ ja, nee en hallo',mode:'type',wordStart:33,wordCount:5},{title:'Oefen met letterknoppen',mode:'type',wordStart:38,wordCount:5},{title:'Mix wat je al kent',mode:'mixed',wordStart:33,wordCount:10},{title:'Checkpoint: eerste productie',mode:'mixed',wordStart:33,wordCount:12}
+  ]},
+  {title:'Eerste korte zinnen',subtitle:'Van losse woorden naar begrijpelijke mini-zinnen',lessons:[
+    {title:'Begroeten',type:'sentences',mode:'build',wordStart:0},{title:'Jezelf voorstellen',type:'sentences',mode:'build',wordStart:6},{title:'Begrijpen en herhalen',type:'sentences',mode:'build',wordStart:12},{title:'Eindchallenge: echte beginner',type:'sentences',mode:'translate',wordStart:0}
+  ]}
+].map((chapter,chapterIndex)=>({...chapter,lessons:chapter.lessons.map((lesson,lessonIndex)=>({id:`ru-nl-${chapterIndex+1}-${lessonIndex+1}`,type:'words',...lesson}))}));
 function activeStoryChapters(){return data.course?.id==='en-ru'?englishStoryChapters:data.course?.id==='ru-nl'?russianStoryChapters:vietnameseStoryChapters;}
 function activeCourseLanguages(){return data.course?.id==='en-ru'?{from:'Английский',to:'Русский',label:'АНГЛИЙСКИЙ'}:data.course?.id==='ru-nl'?{from:'Nederlands',to:'Russisch',label:'RUSSISCH'}:{from:'Vietnamees',to:'Nederlands',label:'VIETNAMEES'};}
 function flatStoryLessons(){return activeStoryChapters().flatMap(chapter=>chapter.lessons);}
@@ -241,9 +253,9 @@ function renderRoadmap(){
   document.querySelectorAll('[data-story-lesson]:not(:disabled)').forEach(button=>button.addEventListener('click',()=>startStoryLesson(button.dataset.storyLesson)));
 }
 function startStoryLesson(id=currentStoryLesson().id){
-  const lesson=flatStoryLessons().find(item=>item.id===id);if(!lesson)return;const language=activeCourseLanguages(),courseWords=data.course.words,base=courseWords.slice(lesson.wordStart,lesson.wordStart+10),fallback=courseWords.slice(0,10),words=base.length?base:fallback;
-  if(lesson.type==='sentences'){const sentences=data.sentencePacks.flatMap(pack=>pack.sentences||[]),items=sentences.slice((lesson.wordStart/8)%Math.max(1,sentences.length),((lesson.wordStart/8)%Math.max(1,sentences.length))+6);if(items.length){quiz={kind:'sentence',storyLessonId:id,mode:'translate',pack:{id:'story-sentences',title:lesson.title,sentences:items,lastScore:null},items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false,selected:[],mistakes:[],startedAt:Date.now()};route('quiz');renderQuiz();return;}}
-  const contextWords=words.filter(word=>window.LOOP_CONTEXTS?.[word.front]),useContext=lesson.type==='context'&&contextWords.length,items=useContext?contextWords:words;quiz={kind:'story',storyLessonId:id,mode:useContext?'context':'mixed',list:{id:'story-list',title:lesson.title,from:language.from,to:language.to,words:items,lastScore:null},items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false,showTranslation:true,direction:'forward',mistakes:[],startedAt:Date.now()};route('quiz');renderQuiz();
+  const lesson=flatStoryLessons().find(item=>item.id===id);if(!lesson)return;const language=activeCourseLanguages(),courseWords=data.course.words,count=lesson.wordCount||10,base=courseWords.slice(lesson.wordStart,lesson.wordStart+count),fallback=courseWords.slice(0,count),words=(base.length?base:fallback).slice(0,lesson.maxItems||count);
+  if(lesson.type==='sentences'){const sentences=data.sentencePacks.flatMap(pack=>pack.sentences||[]),items=sentences.slice((lesson.wordStart/8)%Math.max(1,sentences.length),((lesson.wordStart/8)%Math.max(1,sentences.length))+6);if(items.length){quiz={kind:'sentence',storyLessonId:id,mode:lesson.mode||'translate',pack:{id:'story-sentences',title:lesson.title,sentences:items,lastScore:null},items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false,selected:[],mistakes:[],startedAt:Date.now()};route('quiz');renderQuiz();return;}}
+  const contextWords=words.filter(word=>window.LOOP_CONTEXTS?.[word.front]),useContext=lesson.type==='context'&&contextWords.length,items=useContext?contextWords:words,lessonLanguages=lesson.alphabet?{from:'Russisch',to:'Nederlandse klank'}:language;quiz={kind:'story',storyLessonId:id,mode:useContext?'context':lesson.mode||'mixed',list:{id:'story-list',title:lesson.title,from:lessonLanguages.from,to:lessonLanguages.to,words:items,lastScore:null},items:shuffle(items),index:0,correct:0,points:0,streak:0,answered:false,showTranslation:true,direction:'forward',mistakes:[],startedAt:Date.now()};route('quiz');renderQuiz();
 }
 function completeStoryLesson(percent){if(!quiz.storyLessonId||percent<70)return false;if(!data.course.completedLessons.includes(quiz.storyLessonId))data.course.completedLessons.push(quiz.storyLessonId);return true;}
 function renderPracticeHub(){const words=weeklyDifficultWords().length,sentences=weeklyDifficultSentences().length;const wordButton=document.querySelector('#practice-hard-words'),sentenceButton=document.querySelector('#practice-hard-sentences');wordButton.disabled=!words;sentenceButton.disabled=!sentences;wordButton.querySelector('p').textContent=words?`Versla ${words} moeilijke ${words===1?'woord':'woorden'} uit deze week.`:'Nog geen moeilijke woorden deze week.';sentenceButton.querySelector('p').textContent=sentences?`Herbouw ${sentences} moeilijke ${sentences===1?'zin':'zinnen'} uit deze week.`:'Nog geen moeilijke zinnen deze week.';}
